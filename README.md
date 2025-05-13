@@ -11,6 +11,10 @@ Here is the list of every technology involved:
 - VCable / BlackHole: tool that depends on the OS that is running on the user machine, allows the audio transfer from SuperCollider to JUCE;
 - OSC: protocol that sends the data collected by Arduino to SuperCollider and the data changed by the user to JUCE.
 
-[You can find a scheme that resumes the workflow of the application by clicking on this link.]()
+[You can find a scheme that resumes the workflow of the application by clicking on this link.](https://github.com/Ciorpy/CMLS-2025/blob/main/Documents/workflow.pdf)
 
-## 
+## Credits
+- Marco Porcella marco.porcella@mail.polimi.it
+- Filippo Longhi filippo1.longhi@mail.polimi.it
+- Andrea Crisafulli andrea.crisafulli@mail.polimi.it
+- Giacomo De Toni giacomo1.detoni@mail.polimi.it
