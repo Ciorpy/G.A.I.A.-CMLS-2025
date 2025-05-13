@@ -13,4 +13,8 @@ Here is the list of every technology involved:
 
 [You can find a scheme that resumes the workflow of the application by clicking on this link.](https://github.com/Ciorpy/CMLS-2025/blob/main/Documents/workflow.pdf)
 
-## 
+## Credits
+- Marco Porcella marco.porcella@mail.polimi.it
+- Filippo Longhi filippo1.longhi@mail.polimi.it
+- Andrea Crisafulli andrea.crisafulli@mail.polimi.it
+- Giacomo De Toni giacomo1.detoni@mail.polimi.it
