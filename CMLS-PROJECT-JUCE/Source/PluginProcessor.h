@@ -77,6 +77,9 @@ private:
     // Variables related to effects
     float wet;
     float dry;
-    int ds;
+    int ds = 44100;
 
+    float delay;
+    float reverb;
+    float distortion;
 };

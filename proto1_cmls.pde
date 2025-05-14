@@ -5,49 +5,75 @@ import controlP5.*;
 ControlP5 cp5;
 OscP5 oscP5;
 NetAddress juceApp;
+DropdownList menu;
 
 float delayVal = 0.0;
 float distortionVal = 0.0;
 float reverbVal = 0.0;
 
+int w = 800;
+int h = 600;
+int radius = w / 8;
+int spacing = 250;
+
+int juceDOOR = 9002;
+  
+void settings() {
+  size(w, h);
+}
+
 void setup() {
-  size(400, 280);
 
   // Setup OSC
   oscP5 = new OscP5(this, 8000);  // porta locale
-  juceApp = new NetAddress("127.0.0.1", 9000);  // plugin JUCE
+  juceApp = new NetAddress("127.0.0.1", juceDOOR);  // plugin JUCE
 
   cp5 = new ControlP5(this);
 
   // Knob: Delay
   cp5.addKnob("delayVal")
      .setRange(0, 1)
-     .setValue(0.5)
-     .setPosition(50, 120)
-     .setRadius(40)
-     .setCaptionLabel("")
+     .setValue(0.0)
+     .setPosition(width / 2 - radius - spacing, 170)
+     .setRadius(radius)
+     .setCaptionLabel("Delay")
      .setColorForeground(color(0, 150, 255))
      .setColorActive(color(0, 100, 200));
 
   // Knob: Distorsione
   cp5.addKnob("distortionVal")
      .setRange(0, 1)
-     .setValue(0.5)
-     .setPosition(160, 120)
-     .setRadius(40)
-     .setCaptionLabel("")
+     .setValue(0.0)
+     .setPosition(width / 2 - radius, 170)
+     .setRadius(radius)
+     .setCaptionLabel("Distortion")
      .setColorForeground(color(255, 100, 100))
      .setColorActive(color(200, 50, 50));
 
   // Knob: Riverbero
   cp5.addKnob("reverbVal")
      .setRange(0, 1)
-     .setValue(0.5)
-     .setPosition(270, 120)
-     .setRadius(40)
-     .setCaptionLabel("")
+     .setValue(0.0)
+     .setPosition(width / 2 - radius + spacing, 170)
+     .setRadius(radius)
+     .setCaptionLabel("Reverb")
      .setColorForeground(color(100, 255, 150))
      .setColorActive(color(50, 200, 100));
+     
+     
+  menu = cp5.addDropdownList("Seleziona una forma d'onda")
+            .setPosition(50, 50)
+            .setSize(200, 300)  // larghezza e altezza dell'elenco
+            .setItemHeight(40)
+            .setBarHeight(40)
+            .setValue(0)
+            .close();
+
+  // Aggiungi voci al menu
+  menu.addItem("Option A", 0);
+  menu.addItem("Option B", 1);
+  menu.addItem("Option C", 2);
+  menu.setValue(0);
 }
 
 void draw() {
@@ -55,22 +81,22 @@ void draw() {
 
   // Titolo del synth
   textAlign(CENTER);
-  textSize(20);
+  textSize(80);
   fill(255, 140, 0);  // arancione
-  text("My Synth Plugin", width / 2, 40);
+  text("EnvoSYNTH", width / 2, 100);
 
    // Etichette manopole abbinate per colore
-  textSize(14);
+  textSize(30);
   textAlign(CENTER);
 
   fill(0, 150, 255); // blu chiaro (delay)
-  text("Delay", 90, 110);
+  text("Delay", width / 2 - spacing, 150);
 
   fill(255, 100, 100); // rosso (distorsione)
-  text("Distortion", 200, 110);
+  text("Distortion", width / 2, 150);
 
   fill(100, 255, 150); // verde (riverbero)
-  text("Reverb", 310, 110);
+  text("Reverb", width / 2 + spacing, 150);
 }
 
 // Invio OSC

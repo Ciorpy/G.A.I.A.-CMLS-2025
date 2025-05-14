@@ -14,7 +14,7 @@
 //==============================================================================
 /**
 */
-class CMLSPROJECTJUCEAudioProcessorEditor  : public juce::AudioProcessorEditor, private juce::Slider::Listener
+class CMLSPROJECTJUCEAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
     CMLSPROJECTJUCEAudioProcessorEditor (CMLSPROJECTJUCEAudioProcessor&);
@@ -28,15 +28,6 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     CMLSPROJECTJUCEAudioProcessor& audioProcessor;
-
-    juce::Slider wetSlider;
-    juce::Label wetLabel;
-    juce::Slider drySlider;
-    juce::Label dryLabel;
-    juce::Slider timeSlider;
-    juce::Label timeLabel;
-
-    void sliderValueChanged(juce::Slider* slider) override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CMLSPROJECTJUCEAudioProcessorEditor)
 };
