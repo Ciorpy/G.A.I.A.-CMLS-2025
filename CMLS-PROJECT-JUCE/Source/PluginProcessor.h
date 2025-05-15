@@ -35,11 +35,6 @@ public:
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
-    // Setter functions that allow proper modification of values
-    void set_wet(float val);
-    void set_dry(float val);
-    void set_ds(int val);
-
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
@@ -70,6 +65,9 @@ private:
     void setupOSC(); // Setup function
     void oscMessageReceived(const juce::OSCMessage& message) override; //Override of callback function
     
+    juce::Reverb reverbHandler;
+
+    // Audio processing
     juce::AudioSampleBuffer dbuf;
     int dw;
     int dr;
@@ -79,7 +77,13 @@ private:
     float dry;
     int ds = 44100;
 
-    float delay;
-    float reverb;
-    float distortion;
+    float delay = 0.0f;
+    float reverb = 0.0f;
+    float distortion = 0.0f;
+    int octaver = 0;
+
+    void processDelay(float* sampleL, float* sampleR, float delayVal);
+    void processReverb(float* left, float* right, float reverbVal, int numSamples);
+    void processDistortion(float* sample, float* sampleR, float distortionVal);
+    void processOctaver(float* sample, float* sampleR, int octaverVal);
 };

@@ -36,7 +36,7 @@ void setup() {
      .setValue(0.0)
      .setPosition(width / 2 - radius - spacing, 170)
      .setRadius(radius)
-     .setCaptionLabel("Delay")
+     .setCaptionLabel("")
      .setColorForeground(color(0, 150, 255))
      .setColorActive(color(0, 100, 200));
 
@@ -46,7 +46,7 @@ void setup() {
      .setValue(0.0)
      .setPosition(width / 2 - radius, 170)
      .setRadius(radius)
-     .setCaptionLabel("Distortion")
+     .setCaptionLabel("")
      .setColorForeground(color(255, 100, 100))
      .setColorActive(color(200, 50, 50));
 
@@ -56,24 +56,35 @@ void setup() {
      .setValue(0.0)
      .setPosition(width / 2 - radius + spacing, 170)
      .setRadius(radius)
-     .setCaptionLabel("Reverb")
+     .setCaptionLabel("")
      .setColorForeground(color(100, 255, 150))
      .setColorActive(color(50, 200, 100));
      
      
-  menu = cp5.addDropdownList("Seleziona una forma d'onda")
-            .setPosition(50, 50)
-            .setSize(200, 300)  // larghezza e altezza dell'elenco
-            .setItemHeight(40)
-            .setBarHeight(40)
-            .setValue(0)
-            .close();
+  //menu = cp5.addDropdownList("Seleziona una forma d'onda")
+  //          .setPosition(50, 50)
+  //          .setSize(200, 300)  // larghezza e altezza dell'elenco
+  //          .setItemHeight(40)
+  //          .setBarHeight(40)
+  //          .setValue(0)
+  //          .close();
 
   // Aggiungi voci al menu
-  menu.addItem("Option A", 0);
-  menu.addItem("Option B", 1);
-  menu.addItem("Option C", 2);
-  menu.setValue(0);
+  //menu.addItem("Option A", 0);
+  //menu.addItem("Option B", 1);
+  //menu.addItem("Option C", 2);
+  //menu.setValue(0);
+  
+  cp5.addSlider("octaverVal")
+   .setRange(-2, 2)
+   .setValue(0)
+   .setNumberOfTickMarks(5)
+   .setPosition(width / 2 - 200, 450)
+   .setSize(400, 100)
+   .setSliderMode(Slider.FLEXIBLE)
+   .setCaptionLabel("")
+   .setColorForeground(color(255, 200, 0))
+   .setColorActive(color(200, 150, 0));
 }
 
 void draw() {
@@ -83,7 +94,7 @@ void draw() {
   textAlign(CENTER);
   textSize(80);
   fill(255, 140, 0);  // arancione
-  text("EnvoSYNTH", width / 2, 100);
+  text("G.A.I.A.", width / 2, 100);
 
    // Etichette manopole abbinate per colore
   textSize(30);
@@ -97,6 +108,9 @@ void draw() {
 
   fill(100, 255, 150); // verde (riverbero)
   text("Reverb", width / 2 + spacing, 150);
+  
+    fill(100, 255, 150); // verde (riverbero)
+  text("Octaver", width / 2, 415);
 }
 
 // Invio OSC
@@ -108,6 +122,10 @@ void distortionVal(float val) {
 }
 void reverbVal(float val) {
   sendOSC("/reverb", val);
+}
+
+void octaverVal(int val) {
+  sendOSC("/octaver", val);
 }
 
 void sendOSC(String address, float val) {

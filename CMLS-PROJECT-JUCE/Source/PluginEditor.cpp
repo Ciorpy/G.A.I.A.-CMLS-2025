@@ -29,8 +29,8 @@ void CMLSPROJECTJUCEAudioProcessorEditor::paint (juce::Graphics& g)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
     g.setColour (juce::Colours::white);
-    g.setFont (juce::FontOptions (15.0f));
-    g.drawFittedText ("EnvoSYNTH", getLocalBounds(), juce::Justification::centred, 1);
+    g.setFont (juce::FontOptions (40.0f));
+    g.drawFittedText ("G.A.I.A.", getLocalBounds(), juce::Justification::centred, 1);
 }
 
 void CMLSPROJECTJUCEAudioProcessorEditor::resized()

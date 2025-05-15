@@ -101,6 +101,8 @@ void CMLSPROJECTJUCEAudioProcessor::prepareToPlay (double sampleRate, int sample
     dbuf.setSize(getTotalNumOutputChannels(), 100000);
     dbuf.clear();
 
+    reverbHandler.reset();
+
     dw = 0;
     dr = 1;
     ds = 50000;
@@ -139,59 +141,43 @@ bool CMLSPROJECTJUCEAudioProcessor::isBusesLayoutSupported (const BusesLayout& l
 }
 #endif
 
-void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
 {
-    juce::ScopedNoDenormals noDenormals;
     int numSamples = buffer.getNumSamples();
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // Pulisce eventuali canali output extra
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear(i, 0, buffer.getNumSamples());
-
-    // === PARAMETRI EFFETTI ===
-    float delay_now = delay;       // da 0.0 a 1.0 (controlla tempo di delay)
-    float distortion_now = distortion;  // da 0.0 a 1.0
-    float reverb_now = reverb;      // da 0.0 a 1.0
-    float mix = 0.5f;        // 0.0 = dry, 1.0 = wet (fisso, o crea parametro)
-    float dry_now = 1.0f - mix;
-    float wet_now = mix;
+        buffer.clear(i, 0, numSamples);
 
     float* channelOutDataL = buffer.getWritePointer(0);
     float* channelOutDataR = buffer.getWritePointer(1);
-    const float* channelInData = buffer.getReadPointer(0); // mono input (o stereo duplica)
+    const float* channelInDataL = buffer.getReadPointer(0);
+    const float* channelInDataR = buffer.getReadPointer(1);
+
+    processReverb(channelOutDataL, channelOutDataR, reverb, numSamples);
 
     for (int i = 0; i < numSamples; ++i)
     {
-        float inputSample = channelInData[i];
+        float inputL = channelInDataL[i];
+        float inputR = channelInDataR[i];
+        float sampleL = inputL;
+        float sampleR = inputR;
 
-        // 1. Delay: scrivi input nel delay buffer
-        dbuf.setSample(0, dw, inputSample);
-        dbuf.setSample(1, dw, inputSample);
+        //Effects
+        processDistortion(&sampleL, &sampleR, distortion);
+        processDelay(&sampleL, &sampleR, distortion);
+        processOctaver(&sampleL, &sampleR, distortion);
 
-        float delayedL = dbuf.getSample(0, dr);
-        float delayedR = dbuf.getSample(1, dr);
+        channelOutDataL[i] = inputL + sampleL;
+        channelOutDataR[i] = inputR + sampleR;
 
-        // 2. Distorsione: soft clipping con tanh
-        float drive = juce::jmap(distortion_now, 1.0f, 10.0f);  // mappa da 1x a 10x
-        float distortedL = std::tanh(delayedL * drive);
-        float distortedR = std::tanh(delayedR * drive);
-
-        // 3. Riverbero semplice (feedback)
-        float reverbGain = reverb_now * 0.5f;  // peso della coda
-        float reverbL = distortedL + delayedL * reverbGain;
-        float reverbR = distortedR + delayedR * reverbGain;
-
-        // 4. Wet/Dry mix finale
-        channelOutDataL[i] = dry_now * inputSample + wet_now * reverbL;
-        channelOutDataR[i] = dry_now * inputSample + wet_now * reverbR;
-
-        // 5. Avanza nel delay buffer circolare
         dw = (dw + 1) % ds;
         dr = (dr + 1) % ds;
     }
 }
+
+
 
 
 
@@ -227,24 +213,6 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
     return new CMLSPROJECTJUCEAudioProcessor();
 }
 
-// Setter of wet property
-void CMLSPROJECTJUCEAudioProcessor::set_wet(float val)
-{
-    wet = val;
-}
-
-// Setter of dry property
-void CMLSPROJECTJUCEAudioProcessor::set_dry(float val)
-{
-    dry = val;
-}
-
-//Setter of ds property
-void CMLSPROJECTJUCEAudioProcessor::set_ds(int val)
-{
-    ds = val;
-}
-
 // Setup functions of OSC
 void CMLSPROJECTJUCEAudioProcessor::setupOSC()
 {
@@ -252,7 +220,7 @@ void CMLSPROJECTJUCEAudioProcessor::setupOSC()
     if (!connect(9002))
     {
         // Connection failed
-        DBG("Errore: porta OSC già in uso o non disponibile");
+        DBG("Errore: porta OSC giÃ  in uso o non disponibile");
     }
     else 
     {
@@ -264,6 +232,7 @@ void CMLSPROJECTJUCEAudioProcessor::setupOSC()
     juce::OSCReceiver::addListener(this, "/delay");
     juce::OSCReceiver::addListener(this, "/reverb");
     juce::OSCReceiver::addListener(this, "/distortion");
+    juce::OSCReceiver::addListener(this, "/octaver");
 }
 
 //Callback function that handles the received messages and manages them
@@ -277,22 +246,68 @@ void CMLSPROJECTJUCEAudioProcessor::oscMessageReceived(const juce::OSCMessage& m
         // Checks address and assign value to correct variable
         if (address == "/delay") 
         {
-            delay = value;
+            delay = static_cast<float>(value);
             DBG("DELAY: " << delay);
         }
         else if (address == "/distortion") 
         {
-            distortion = value;
+            distortion = static_cast<float>(value);
             DBG("DISTORTION: " << distortion);
         }
         else if (address == "/reverb") 
         {
-            reverb = value;
+            reverb = static_cast<float>(value);
             DBG("REVERB: " << reverb);
-        }
+		}
+		else if (address == "/octaver")
+		{
+			octaver = static_cast<int>(value);
+			DBG("OCTAVER: " << octaver);
+		}
         else
         {
             DBG("OSC not valid");
         }
     }
+
+    return;
+}
+
+void CMLSPROJECTJUCEAudioProcessor::processDelay(float* sampleL, float* sampleR, float delayVal)
+{
+    if (delayVal != 0.0f) {
+
+    }
+
+    return;
+}
+
+
+void CMLSPROJECTJUCEAudioProcessor::processReverb(float* left, float* right, float reverbVal, int numSamples)
+{
+    juce::Reverb::Parameters reverbParams = {1.0f, 0.0f, reverbVal, (1-reverbVal), 1.0f, 0.8f};
+
+    reverbHandler.setParameters(reverbParams);
+    reverbHandler.processStereo(left, right, numSamples);
+    
+    return;
+}
+
+void CMLSPROJECTJUCEAudioProcessor::processDistortion(float* sampleL, float* sampleR, float distortionVal)
+{
+    if (distortionVal != 0.0f) {
+        *sampleL = 2.0f * distortionVal / juce::MathConstants<float>::pi * atan(*sampleL * 10);
+        *sampleR = 2.0f * distortionVal / juce::MathConstants<float>::pi * atan(*sampleR * 10);
+    }
+
+    return;
+}
+
+void CMLSPROJECTJUCEAudioProcessor::processOctaver(float* sampleL, float* sampleR, int octaverVal)
+{
+    if (octaverVal != 0) {
+
+    }
+
+    return;
 }
