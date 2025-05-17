@@ -4,6 +4,9 @@
               useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
   <MAINGROUP id="Qst0v0" name="CMLS-PROJECT-JUCE">
     <GROUP id="{07936A78-F914-0D55-70DB-31C122B7B4F7}" name="Source">
+      <FILE id="Ed9iST" name="PluginEffects.cpp" compile="1" resource="0"
+            file="Source/PluginEffects.cpp"/>
+      <FILE id="jmBAiu" name="PluginEffects.h" compile="0" resource="0" file="Source/PluginEffects.h"/>
       <FILE id="hAio1X" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="qBMpDp" name="PluginProcessor.h" compile="0" resource="0"

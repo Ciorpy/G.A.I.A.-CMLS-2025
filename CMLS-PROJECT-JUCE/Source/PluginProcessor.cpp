@@ -22,7 +22,6 @@ CMLSPROJECTJUCEAudioProcessor::CMLSPROJECTJUCEAudioProcessor()
                        )
 #endif
 {
-    setupOSC(); // Setup OSC (Needed in order to receive messages)
 }
 
 CMLSPROJECTJUCEAudioProcessor::~CMLSPROJECTJUCEAudioProcessor()
@@ -101,11 +100,9 @@ void CMLSPROJECTJUCEAudioProcessor::prepareToPlay (double sampleRate, int sample
     dbuf.setSize(getTotalNumOutputChannels(), 100000);
     dbuf.clear();
 
-    reverbHandler.reset();
-
     dw = 0;
     dr = 1;
-    ds = 50000;
+    //ds = 50000;
 
 }
 
@@ -155,8 +152,6 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
     const float* channelInDataL = buffer.getReadPointer(0);
     const float* channelInDataR = buffer.getReadPointer(1);
 
-    processReverb(channelOutDataL, channelOutDataR, reverb, numSamples);
-
     for (int i = 0; i < numSamples; ++i)
     {
         float inputL = channelInDataL[i];
@@ -165,16 +160,18 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
         float sampleR = inputR;
 
         //Effects
-        processDistortion(&sampleL, &sampleR, distortion);
-        processDelay(&sampleL, &sampleR, distortion);
-        processOctaver(&sampleL, &sampleR, distortion);
+        //processDistortion(&sampleL, &sampleR, distortion);
+        //processDelay(&sampleL, &sampleR, distortion);
+        //processOctaver(&sampleL, &sampleR, distortion);
 
-        channelOutDataL[i] = inputL + sampleL;
-        channelOutDataR[i] = inputR + sampleR;
+        channelOutDataL[i] = sampleL;
+        channelOutDataR[i] = sampleR;
 
         dw = (dw + 1) % ds;
         dr = (dr + 1) % ds;
     }
+
+    processReverb(channelOutDataL, channelOutDataR, numSamples);
 }
 
 
@@ -211,103 +208,4 @@ void CMLSPROJECTJUCEAudioProcessor::setStateInformation (const void* data, int s
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new CMLSPROJECTJUCEAudioProcessor();
-}
-
-// Setup functions of OSC
-void CMLSPROJECTJUCEAudioProcessor::setupOSC()
-{
-    //Tries to connect to door 9002
-    if (!connect(9002))
-    {
-        // Connection failed
-        DBG("Errore: porta OSC già in uso o non disponibile");
-    }
-    else 
-    {
-        //Connection successful
-        DBG("PORTA APERTA");
-    }
-
-    //Adds listeners that receive the parameters of the effects from Processing
-    juce::OSCReceiver::addListener(this, "/delay");
-    juce::OSCReceiver::addListener(this, "/reverb");
-    juce::OSCReceiver::addListener(this, "/distortion");
-    juce::OSCReceiver::addListener(this, "/octaver");
-}
-
-//Callback function that handles the received messages and manages them
-void CMLSPROJECTJUCEAudioProcessor::oscMessageReceived(const juce::OSCMessage& message)
-{
-    //Checks validity of the OSC msg
-    if (message.size() == 1 && message[0].isFloat32()) {
-        juce::String address = message.getAddressPattern().toString(); // recognizes param
-        float value = std::floor(message[0].getFloat32() * 100.0f) / 100.0f; // gets value of MSG
-
-        // Checks address and assign value to correct variable
-        if (address == "/delay") 
-        {
-            delay = static_cast<float>(value);
-            DBG("DELAY: " << delay);
-        }
-        else if (address == "/distortion") 
-        {
-            distortion = static_cast<float>(value);
-            DBG("DISTORTION: " << distortion);
-        }
-        else if (address == "/reverb") 
-        {
-            reverb = static_cast<float>(value);
-            DBG("REVERB: " << reverb);
-		}
-		else if (address == "/octaver")
-		{
-			octaver = static_cast<int>(value);
-			DBG("OCTAVER: " << octaver);
-		}
-        else
-        {
-            DBG("OSC not valid");
-        }
-    }
-
-    return;
-}
-
-void CMLSPROJECTJUCEAudioProcessor::processDelay(float* sampleL, float* sampleR, float delayVal)
-{
-    if (delayVal != 0.0f) {
-
-    }
-
-    return;
-}
-
-
-void CMLSPROJECTJUCEAudioProcessor::processReverb(float* left, float* right, float reverbVal, int numSamples)
-{
-    juce::Reverb::Parameters reverbParams = {1.0f, 0.0f, reverbVal, (1-reverbVal), 1.0f, 0.8f};
-
-    reverbHandler.setParameters(reverbParams);
-    reverbHandler.processStereo(left, right, numSamples);
-    
-    return;
-}
-
-void CMLSPROJECTJUCEAudioProcessor::processDistortion(float* sampleL, float* sampleR, float distortionVal)
-{
-    if (distortionVal != 0.0f) {
-        *sampleL = 2.0f * distortionVal / juce::MathConstants<float>::pi * atan(*sampleL * 10);
-        *sampleR = 2.0f * distortionVal / juce::MathConstants<float>::pi * atan(*sampleR * 10);
-    }
-
-    return;
-}
-
-void CMLSPROJECTJUCEAudioProcessor::processOctaver(float* sampleL, float* sampleR, int octaverVal)
-{
-    if (octaverVal != 0) {
-
-    }
-
-    return;
 }

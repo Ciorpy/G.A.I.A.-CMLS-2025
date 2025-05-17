@@ -9,16 +9,13 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "PluginEffects.h"
 
 //==============================================================================
 /**
 */
 
-/* Class CMLSPROJECTJUCEAudioProcessor inherits from AudioProcessor, OSCReceiver and
-   OSCReceiver::ListenerWithOSCAddress<juce::OSCReceiver::MessageLoopCallback>. This allows 
-   us to gain access to functions needed to allow comunication via OSC protocol*/
-class CMLSPROJECTJUCEAudioProcessor  : public juce::AudioProcessor, private juce::OSCReceiver,
-    private juce::OSCReceiver::ListenerWithOSCAddress<juce::OSCReceiver::MessageLoopCallback>
+class CMLSPROJECTJUCEAudioProcessor  : public juce::AudioProcessor, public CMLSPROJECTJUCEEffects
 {
 public:
     //==============================================================================
@@ -59,31 +56,11 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 private:
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CMLSPROJECTJUCEAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(CMLSPROJECTJUCEAudioProcessor)
 
-    // Functions related to OSC
-    void setupOSC(); // Setup function
-    void oscMessageReceived(const juce::OSCMessage& message) override; //Override of callback function
-    
-    juce::Reverb reverbHandler;
 
     // Audio processing
     juce::AudioSampleBuffer dbuf;
     int dw;
     int dr;
-
-    // Variables related to effects
-    float wet;
-    float dry;
-    int ds = 44100;
-
-    float delay = 0.0f;
-    float reverb = 0.0f;
-    float distortion = 0.0f;
-    int octaver = 0;
-
-    void processDelay(float* sampleL, float* sampleR, float delayVal);
-    void processReverb(float* left, float* right, float reverbVal, int numSamples);
-    void processDistortion(float* sample, float* sampleR, float distortionVal);
-    void processOctaver(float* sample, float* sampleR, int octaverVal);
 };
