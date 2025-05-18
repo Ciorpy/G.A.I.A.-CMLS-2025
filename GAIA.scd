@@ -10,6 +10,10 @@ s.options.outDevice = "CABLE Input (VB-Audio Virtual Cable)"; // Uscita audio vi
 ~lightRaw = 0; ~light = 0.5;
 ~triggerBar = 0;
 ~durBar = 10000; // durata della battuta, in millisecondi
+~triggerNote = 0;
+~noteVal = 0;
+~durNote = 0.5;  // secondi
+
 
 // === Ricezione OSC e aggiornamento synth ===
 OSCdef(\temp, { |msg|
@@ -38,7 +42,56 @@ OSCdef(\triggerBar, { |msg|
 OSCdef(\durBar, { |msg|
 	~durBar = msg[1] / 1000;  // Converte da ms a secondi
 	~synth.set(\durBar, ~durBar);
-}, "/duratab/dbar");
+}, "/duratat/dbar");
+
+OSCdef(\triggerNote, { |msg|
+	~triggerNote = msg[1];
+	~synth.set(\triggerNote, ~triggerNote);
+}, "/trigger/tnot");
+
+OSCdef(\durNote, { |msg|
+	~durNote = msg[1] / 1000; // da ms a secondi
+	~synth.set(\durNote, ~durNote);
+}, "/duratat/dnot");
+
+OSCdef(\noteVal, { |msg|
+	~noteVal = msg[1];
+	~synth.set(\noteVal, ~noteVal);
+}, "/musnote/note");
+)
+
+
+(
+~reader = Routine({
+
+	var normTemp;
+    var normHum;
+    var normLight;
+
+	loop {
+		("Temp: " ++ (~tempRaw / 100).round(0.01) ++ " °C"
+		 ++ " | Hum: " ++ (~humRaw / 100).round(0.01) ++ " %"
+		 ++ " | Light: " ++ ~lightRaw).postln;
+
+		("Tonal Center: " ++ ~tonalCenter
+		 ++ " | triggerBar: " ++ ~triggerBar
+		 ++ " | durBar: " ++ ~durBar ++ " s").postln;
+
+		("Note: " ++ ~noteVal
+		 ++ " | Trig: " ++ ~triggerNote
+		 ++ " | Dur: " ++ ~durNote ++ " s").postln;
+
+		"---------------------------".postln;
+
+		/*
+		// Invia i parametri normalizzati a Processing via OSC
+		n = NetAddr("127.0.0.1", 57121); // IP e porta di Processing
+		n.sendMsg("/env", ~tempRaw, ~humRaw, ~lightRaw); // temp, hum, light normalizzati
+		*/
+
+		0.2.wait;
+	}
+});
 )
 
 
@@ -47,7 +100,7 @@ OSCFunc.trace(false); // Disattivala quando non serve
 
 
 (
-SynthDef(\GAIA, { |tonalCenter=0, hum=0.5, light=0.5, amp=0.5, triggerBar=0, durBar=10, out=0|
+SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerBar = 0, durBar = 10, triggerNote = 0, noteVal = 0, durNote = 0.5, out = 0 |
 
 	// === Parametri generali ===
 	var rowCount = 9;
@@ -62,8 +115,6 @@ SynthDef(\GAIA, { |tonalCenter=0, hum=0.5, light=0.5, amp=0.5, triggerBar=0, dur
 		[5, 9, 14], [7, 11, 16], [9, 14, 21],
 		[4, 7, 12], [0, 4, 11, 16], [0, 2, 9, 14]
 	];
-
-	var notes = [0,1,2,3,4,5,6,7,8,9,10,11,12];
 
 	// === Triggering ===
 	var barTrig = Trig1.kr(triggerBar, 0.001);
@@ -92,13 +143,14 @@ SynthDef(\GAIA, { |tonalCenter=0, hum=0.5, light=0.5, amp=0.5, triggerBar=0, dur
 	});
 
 	// === SOMMA BASSO + ACCORDI ===
-	var harmony = bassSig + chordSig;
+	var harmonyDry = bassSig + chordSig;
 
 	/*
 	// === Ritardo + dissolvenza (crossfade del blocco precedente) ===
 	// var fadeOut = EnvGen.kr(Env([1, 0], [2]), gate: barTrig).delay(durBar);
 	var fadeOut = DelayL.kr(Line.kr(1, 0, 2), durBar, durBar - 0.5);
 	var harmonyDelayed = DelayN.ar(harmonyDry, durBar, durBar - 0.5) * 0.2;
+	*/
 
 	// === Riverbero controllato da umidità ===
 	var dryWet = hum.linlin(0.0, 1.0, 0.1, 0.6);
@@ -107,20 +159,16 @@ SynthDef(\GAIA, { |tonalCenter=0, hum=0.5, light=0.5, amp=0.5, triggerBar=0, dur
 	var harmony = FreeVerb.ar(
 		harmonyDry, mix: dryWet, room: room, damp: 0.6
 	);
-	*/
-	
+
 	// === Note singole ===
-	// Trigger randomico tra 0.25 e 2 secondi
-	var noteTrig = Impulse.kr(TIRand.kr(2.0, 5.0, Dust.kr(1)));
+	var noteFreq = (72 + tonalCenter + noteVal).midicps;
 
-	// Scegli una nota MIDI random (da 0 a 12)
-	var note = TRand.kr(0, 12, noteTrig);
+	var noteEnv = EnvGen.kr(
+		Env.perc(0.01, durNote),
+		gate: Trig1.kr(triggerNote, 0.001)
+	);
 
-	// Calcola la frequenza acuta
-	var noteFreq = (72 + tonalCenter + note).midicps;
-
-	// Sintesi digitale breve
-	var noteSig = Decay.kr(noteTrig, 0.2) * Pulse.ar(noteFreq, 0.05, 0.3);
+	var noteSig = noteEnv * SinOsc.ar(noteFreq, 0, 0.3);
 
 	// === Mix e Output ===
 	var sig = harmony + noteSig;
@@ -128,26 +176,8 @@ SynthDef(\GAIA, { |tonalCenter=0, hum=0.5, light=0.5, amp=0.5, triggerBar=0, dur
 }).add;
 )
 
-~synth = Synth(\GAIA);  // Avvia il synth
-
 
 (
-~reader = Routine({
-	loop {
-		("Temp: " ++ (~tempRaw / 100).round(0.01) ++ " °C"
-		 ++ " | Hum: " ++ (~humRaw / 100).round(0.01) ++ " %"
-		 ++ " | Light: " ++ ~lightRaw).postln;
-
-		("Tonal Center: " ++ ~tonalCenter
-		 ++ " | triggerBar: " ++ ~triggerBar
-		 ++ " | durBar: " ++ ~durBar ++ " s").postln;
-
-		"---------------------------".postln;
-		0.25.wait;
-	}
-});
-)
-
 ~reader.play;  // Avvia la console lettura
-~reader.stop;  // Ferma la console
-
+~synth = Synth(\GAIA);  // Avvia il synth
+)
