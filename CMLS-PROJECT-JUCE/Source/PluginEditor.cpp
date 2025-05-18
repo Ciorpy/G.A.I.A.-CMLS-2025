@@ -35,7 +35,7 @@ void CMLSPROJECTJUCEAudioProcessorEditor::paint (juce::Graphics& g)
     g.setColour(juce::Colours::red);
     g.fillRect(0, 0, 600, 300);
 
-    g.setColour(juce::Colours::yellow);
+    g.setColour(juce::Colours::darkorchid);
     g.fillRect(0, 300, 600, 300);
 
     g.setColour(juce::Colours::purple);

@@ -32,7 +32,7 @@ public:
 
     void processDelay(float* sampleL, float* sampleR, float delayVal);
     void processReverb(float* left, float* right, int numSamples);
-    void processDistortion(float* sample, float* sampleR, float distortionVal);
+    void processDistortion(float* sample, float* sampleR);
     void processOctaver(float* sample, float* sampleR, int octaverVal);
 
 private:
@@ -66,13 +66,10 @@ private:
 
     // - Knobs -
     juce::Slider roomSizeKnob, dampingKnob, wetLevelKnob, dryLevelKnob, revWidthKnob, freezeModeKnob;
-    std::array<juce::Slider*, 6> reverbSliderArray = { &roomSizeKnob, &dampingKnob, &wetLevelKnob, &dryLevelKnob, &revWidthKnob, &freezeModeKnob };
     
     // - Labels -
     juce::Label roomSizeLabel, dampingLabel, wetLevelLabel, dryLevelLabel, revWidthLabel, freezeModeLabel;
-    std::array<juce::Label*, 6> reverbLabelArray = { &roomSizeLabel, &dampingLabel, &wetLevelLabel, &dryLevelLabel, &revWidthLabel, &freezeModeLabel };
-    std::array<juce::String, 6> reverbLabelNameArray = { "Room Size", "Damping", "Wet level", "Dry level", "Width", "Freeze Mode" };
-
+    
     juce::Slider* reverbSliders[6] = { &roomSizeKnob, &dampingKnob, &wetLevelKnob, &dryLevelKnob, &revWidthKnob, &freezeModeKnob };
     juce::Label* reverbLabels[6] = { &roomSizeLabel, &dampingLabel, &wetLevelLabel, &dryLevelLabel, &revWidthLabel, &freezeModeLabel };
     juce::String reverbLabelNames[6] = { "Room Size", "Damping", "Wet level", "Dry level", "Width", "Freeze Mode" };
@@ -82,6 +79,26 @@ private:
         reverbLabels,
         reverbLabelNames,
         6
+    };
+
+    // - Distortion ----------------------------------------------------------------------------------------------------------
+    juce::Label distortionMainLabel;
+
+    // - Knobs -
+    juce::Slider driveKnob, mixKnob;
+
+    // - Labels -
+    juce::Label driveLabel, mixLabel;
+
+    juce::Slider* distortionSliders[2] = { &driveKnob, &mixKnob };
+    juce::Label* distortionLabels[2] = { &driveLabel, &mixLabel };
+    juce::String distortionLabelNames[2] = { "Drive", "Mix" };
+
+    EffectUIBlock distortionBlock = {
+        distortionSliders,
+        distortionLabels,
+        distortionLabelNames,
+        2
     };
 
     // - FUNCTIONS AND PROCEDURES ------------------------------------------------------------------------------------------------------------

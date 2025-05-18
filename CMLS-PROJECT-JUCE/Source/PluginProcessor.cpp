@@ -160,7 +160,7 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
         float sampleR = inputR;
 
         //Effects
-        //processDistortion(&sampleL, &sampleR, distortion);
+        processDistortion(&sampleL, &sampleR);
         //processDelay(&sampleL, &sampleR, distortion);
         //processOctaver(&sampleL, &sampleR, distortion);
 

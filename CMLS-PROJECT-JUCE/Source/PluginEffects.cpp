@@ -15,7 +15,7 @@
 void CMLSPROJECTJUCEEffects::setupMixerUI(std::function<void(juce::Component&)> addFn)
 {
     setUpArea(addFn, Reverb, 0, 0);
-    //setUpArea(addFn, Distortion, distortionBlock);
+    setUpArea(addFn, Distortion, 0, 300);
     //setUpArea(addFn, Distortion, distortionBlock);
     //setUpArea(addFn, Distortion, distortionBlock);
     //setUpArea(addFn, Distortion, distortionBlock);
@@ -25,14 +25,36 @@ void CMLSPROJECTJUCEEffects::setupMixerUI(std::function<void(juce::Component&)> 
 void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> addFn, int effectID, int posX, int posY)
 {
     EffectUIBlock* block;
+    int margin = 0;
+
 
     retrieveData(effectID, block);
     setMainLabel(addFn, effectID, posX, posY);
 
+    switch (block->numParams) {
+    case 2:
+        margin = 180;
+        break;
+    case 3:
+        margin = 120;
+        break;
+    case 4:
+        margin = 80;
+        break;
+    case 5:
+        margin = 40;
+        break;
+    case 6:
+        margin = 20;
+        break;
+    default:
+        margin = 0;
+        break;
+    }
 
     int sliderWidth = 100;
     int sliderHeight = 100;
-    int spacing = (560 - block->numParams * sliderWidth) / (block->numParams-1);
+    int spacing = (600 - margin * 2 - block->numParams * sliderWidth) / (block->numParams-1);
 
     
     for (int i = 0; i < block->numParams; ++i)
@@ -56,7 +78,7 @@ void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> add
         addFn(*slider);
         addFn(*label);
 
-        int x = posX + 20 + i * (sliderWidth + spacing);
+        int x = posX + margin + i * (sliderWidth + spacing);
         int y = posY + sliderHeight;
         slider->setBounds(x, y, sliderWidth, sliderHeight);
         label->setBounds(x, y - 15, sliderWidth, 20);
@@ -84,8 +106,6 @@ void CMLSPROJECTJUCEEffects::processReverb(float* left, float* right, int numSam
     float revWidth = reverbBlock.sliders[4]->getValue();
     float freezeMode = reverbBlock.sliders[5]->getValue();
 
-    DBG("roomSize" << roomSize);
-
     juce::Reverb::Parameters reverbParams = { roomSize, damping, wetLevel, dryLevel, revWidth, freezeMode};
 
 
@@ -94,12 +114,14 @@ void CMLSPROJECTJUCEEffects::processReverb(float* left, float* right, int numSam
     return;
 }
 
-void CMLSPROJECTJUCEEffects::processDistortion(float* sampleL, float* sampleR, float distortionVal)
+void CMLSPROJECTJUCEEffects::processDistortion(float* sampleL, float* sampleR)
 {
-    if (distortionVal != 0.0f) {
-        *sampleL = (distortionVal) / juce::MathConstants<float>::pi * atan(*sampleL * 10);
-        *sampleR = (distortionVal) / juce::MathConstants<float>::pi * atan(*sampleR * 10);
-    }
+    float drive = distortionBlock.sliders[0]->getValue();
+    float mix = distortionBlock.sliders[1]->getValue();
+
+    *sampleL = (1 - mix) * *sampleL + mix * juce::jlimit(-0.1f, 0.1f, *sampleL * drive);
+    *sampleR = (1 - mix) * *sampleR + mix * juce::jlimit(-0.1f, 0.1f, *sampleR * drive);
+
 
     return;
 }
@@ -122,7 +144,7 @@ void CMLSPROJECTJUCEEffects::setMainLabel(std::function<void(juce::Component&)> 
     switch (static_cast<EffectID>(effectID))
     {
     case EffectID::Distortion:
-        mainLabel = NULL;
+        mainLabel = &distortionMainLabel;
         mainLabelTitle = "Distortion";
         break;
 
@@ -173,7 +195,7 @@ void CMLSPROJECTJUCEEffects::retrieveData(int effectID, EffectUIBlock*& block)
     switch (static_cast<EffectID>(effectID))
     {
     case EffectID::Distortion:
-
+		block = &distortionBlock;
         break;
 
     case EffectID::Delay:
