@@ -92,8 +92,9 @@ SynthDef(\GAIA, { |tonalCenter=0, hum=0.5, light=0.5, amp=0.5, triggerBar=0, dur
 	});
 
 	// === SOMMA BASSO + ACCORDI ===
-	var harmonyDry = bassSig + chordSig;
+	var harmony = bassSig + chordSig;
 
+	/*
 	// === Ritardo + dissolvenza (crossfade del blocco precedente) ===
 	// var fadeOut = EnvGen.kr(Env([1, 0], [2]), gate: barTrig).delay(durBar);
 	var fadeOut = DelayL.kr(Line.kr(1, 0, 2), durBar, durBar - 0.5);
@@ -106,7 +107,8 @@ SynthDef(\GAIA, { |tonalCenter=0, hum=0.5, light=0.5, amp=0.5, triggerBar=0, dur
 	var harmony = FreeVerb.ar(
 		harmonyDry, mix: dryWet, room: room, damp: 0.6
 	);
-
+	*/
+	
 	// === Note singole ===
 	// Trigger randomico tra 0.25 e 2 secondi
 	var noteTrig = Impulse.kr(TIRand.kr(2.0, 5.0, Dust.kr(1)));
