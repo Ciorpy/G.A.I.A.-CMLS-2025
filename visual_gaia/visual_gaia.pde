@@ -24,15 +24,15 @@ void setup(){
 void draw(){
   blendMode(ADD);
   background(0);
-  ps.followEnv(temp, hum, light);
+  ps.followEnv(light, light*100, light*100);
   ps.draw();
 }
 
 // Ricezione OSC da SuperCollider
 void oscEvent(OscMessage msg){
   if (msg.checkAddrPattern("/env") && msg.checkTypetag("fff")) {
-    temp = constrain(msg.get(0).floatValue(), 0, 1);
-    hum  = constrain(msg.get(1).floatValue(), 0, 1);
-    light= constrain(msg.get(2).floatValue(), 0, 1);
+    temp = msg.get(0).floatValue();
+    hum  = msg.get(1).floatValue();
+    light= msg.get(2).floatValue();
   }
 }
