@@ -31,9 +31,8 @@ public:
     void setupMixerUI(std::function<void(juce::Component&)> addFn);
 
     void processDelay(float* sampleL, float* sampleR, float delayVal);
-    void processReverb(float* left, float* right, int numSamples);
-    void processDistortion(float* sample, float* sampleR);
-    void processOctaver(float* sample, float* sampleR, int octaverVal);
+    void processReverb(float* left, float* right, int numSamples, int SuperCollComponent);
+    void processDistortion(float* sample, float* sampleR, int SuperCollComponent);
 
 private:
     enum EffectID {
@@ -45,61 +44,52 @@ private:
         Octaver
     };
 
-    struct EffectUIBlock
-    {
-        juce::Slider** sliders;
-        juce::Label** labels;
-        juce::String* labelNames;
-        int numParams;
+    enum SuperColliderComponent {
+        Chords,
+        Bass,
+        Notes
     };
 
-    juce::Slider distortionKnob, delayKnob, reverbKnob, octaverKnob;
-    std::array<juce::Slider*, 4> sliderArray = {&distortionKnob, &delayKnob, &reverbKnob, &octaverKnob};
 
-    juce::Label distortionLabel, delayLabel, reverbLabel, octaverLabel;
-    std::array<juce::Label*, 4> labelArray = { &distortionLabel, &delayLabel, &reverbLabel, &octaverLabel };
-    std::array<juce::String, 4> labelNameArray = { "Distortion", "Delay", "Reverb", "Octaver"};
+    struct EffectUIBlock
+    {
+        juce::Slider(*sliders)[3];  // puntatore ad array di 3 Slider
+        juce::Label(*labels)[3];   // puntatore ad array di 3 Label
+        juce::String* labelNames;
+        int numParams;
+
+        EffectUIBlock(juce::Slider(*sliders)[3], juce::Label(*labels)[3], juce::String* names, int numParams)
+            : sliders(sliders),
+            labels(labels),
+            labelNames(names),
+            numParams(numParams)
+        {
+        }
+    };
 
     // - Reverb ----------------------------------------------------------------------------------------------------------
     juce::Reverb reverbHandler;
     juce::Label reverbMainLabel;
-
+    
     // - Knobs -
-    juce::Slider roomSizeKnob, dampingKnob, wetLevelKnob, dryLevelKnob, revWidthKnob, freezeModeKnob;
-    
-    // - Labels -
-    juce::Label roomSizeLabel, dampingLabel, wetLevelLabel, dryLevelLabel, revWidthLabel, freezeModeLabel;
-    
-    juce::Slider* reverbSliders[6] = { &roomSizeKnob, &dampingKnob, &wetLevelKnob, &dryLevelKnob, &revWidthKnob, &freezeModeKnob };
-    juce::Label* reverbLabels[6] = { &roomSizeLabel, &dampingLabel, &wetLevelLabel, &dryLevelLabel, &revWidthLabel, &freezeModeLabel };
+    juce::Slider reverbSliders[6][3];
+    juce::Label reverbLabels[6][3];
+
     juce::String reverbLabelNames[6] = { "Room Size", "Damping", "Wet level", "Dry level", "Width", "Freeze Mode" };
 
-    EffectUIBlock reverbBlock = {
-        reverbSliders,
-        reverbLabels,
-        reverbLabelNames,
-        6
-    };
+    EffectUIBlock reverbBlock = { reverbSliders, reverbLabels, reverbLabelNames, 6 };
 
     // - Distortion ----------------------------------------------------------------------------------------------------------
     juce::Label distortionMainLabel;
 
-    // - Knobs -
-    juce::Slider driveKnob, mixKnob;
 
-    // - Labels -
-    juce::Label driveLabel, mixLabel;
+    juce::Slider distortionSliders[2][3];
+    juce::Label distortionLabels[2][3];
 
-    juce::Slider* distortionSliders[2] = { &driveKnob, &mixKnob };
-    juce::Label* distortionLabels[2] = { &driveLabel, &mixLabel };
     juce::String distortionLabelNames[2] = { "Drive", "Mix" };
 
-    EffectUIBlock distortionBlock = {
-        distortionSliders,
-        distortionLabels,
-        distortionLabelNames,
-        2
-    };
+    EffectUIBlock distortionBlock = { distortionSliders, distortionLabels, distortionLabelNames, 2 };
+
 
     // - FUNCTIONS AND PROCEDURES ------------------------------------------------------------------------------------------------------------
 
