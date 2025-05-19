@@ -188,8 +188,8 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
     }
 
     processReverb(channelOutDataL1, channelOutDataR1, numSamples, 0);
-    processReverb(channelOutDataL1, channelOutDataR1, numSamples, 1);
-    processReverb(channelOutDataL1, channelOutDataR1, numSamples, 2);
+    processReverb(channelOutDataL2, channelOutDataR2, numSamples, 1);
+    processReverb(channelOutDataL3, channelOutDataR3, numSamples, 2);
 }
 
 
