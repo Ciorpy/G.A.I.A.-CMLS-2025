@@ -15,7 +15,7 @@ const char* passList[] = {"GDThotspot", "benvenuti!"};
 const int numNetworks = 2;
 
 IPAddress remoteIP(192, 168, 123, 50);
-unsigned int remotePort[] = {57120, 57121};
+unsigned int remotePort[] = {57120, 57130, 57140};
 
 int temp = 0;
 int humi = 0;
@@ -77,6 +77,7 @@ void loop() {
   rldr = analogRead(RLDR_PIN);
 
   // === Invio dati OSC ===
+  // Supercollider
   sendOSC("/sensors/temp", temp, remotePort[0]);
   sendOSC("/sensors/humi", humi, remotePort[0]);
   sendOSC("/sensors/rldr", rldr, remotePort[0]);
@@ -85,16 +86,17 @@ void loop() {
   sendOSC("/trigger/tnot", triggerNote, remotePort[0]);
   sendOSC("/duratat/dnot", durNote, remotePort[0]);
   sendOSC("/musnote/note", note, remotePort[0]);
-  /*
+  
+  // Processing
   sendOSC("/sensors/temp", temp, remotePort[1]);
   sendOSC("/sensors/humi", humi, remotePort[1]);
   sendOSC("/sensors/rldr", rldr, remotePort[1]);
-  sendOSC("/trigger/tbar", triggerBar, remotePort[1]);
-  sendOSC("/duratab/dbar", durBar, remotePort[1]);
-  sendOSC("/trigger/tnot", triggerNote, remotePort[1]);
-  sendOSC("/duratat/dnot", durBar, remotePort[1]);
-  sendOSC("/musnote/note", note, remotePort[1]);
-  */
+  
+  // Juce
+  sendOSC("/sensors/temp", temp, remotePort[2]);
+  sendOSC("/sensors/humi", humi, remotePort[2]);
+  sendOSC("/sensors/rldr", rldr, remotePort[2]);
+  
   delay(200);
 }
 
