@@ -15,9 +15,9 @@ CMLSPROJECTJUCEAudioProcessor::CMLSPROJECTJUCEAudioProcessor()
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
+                       .withInput  ("Input",  juce::AudioChannelSet::discreteChannels(6), true)
                       #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
+                       .withOutput ("Output", juce::AudioChannelSet::discreteChannels(6), true)
                      #endif
                        )
 #endif
@@ -113,28 +113,20 @@ void CMLSPROJECTJUCEAudioProcessor::releaseResources()
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool CMLSPROJECTJUCEAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool CMLSPROJECTJUCEAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
-  #if JucePlugin_IsMidiEffect
-    juce::ignoreUnused (layouts);
-    return true;
-  #else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    // Some plugin hosts, such as certain GarageBand versions, will only
-    // load plugins that support stereo bus layouts.
-    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
-     && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+    const auto& inputLayout = layouts.getMainInputChannelSet();
+    const auto& outputLayout = layouts.getMainOutputChannelSet();
+
+    // Accetta solo 6 canali discreti in input
+    if (inputLayout != juce::AudioChannelSet::discreteChannels(6))
         return false;
 
-    // This checks if the input layout matches the output layout
-   #if ! JucePlugin_IsSynth
-    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
+    // Output deve essere stereo
+    if (outputLayout != juce::AudioChannelSet::discreteChannels(6))
         return false;
-   #endif
 
     return true;
-  #endif
 }
 #endif
 
@@ -147,31 +139,57 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear(i, 0, numSamples);
 
-    float* channelOutDataL = buffer.getWritePointer(0);
-    float* channelOutDataR = buffer.getWritePointer(1);
-    const float* channelInDataL = buffer.getReadPointer(0);
-    const float* channelInDataR = buffer.getReadPointer(1);
+    float* channelOutDataL1 = buffer.getWritePointer(0);
+    float* channelOutDataR1 = buffer.getWritePointer(1);
+    float* channelOutDataL2 = buffer.getWritePointer(2);
+    float* channelOutDataR2 = buffer.getWritePointer(3);
+    float* channelOutDataL3 = buffer.getWritePointer(4);
+    float* channelOutDataR3 = buffer.getWritePointer(5);
+    const float* channelInDataL1 = buffer.getReadPointer(0);
+    const float* channelInDataR1 = buffer.getReadPointer(1);
+    const float* channelInDataL2 = buffer.getReadPointer(2);
+    const float* channelInDataR2 = buffer.getReadPointer(3);
+    const float* channelInDataL3 = buffer.getReadPointer(4);
+    const float* channelInDataR3 = buffer.getReadPointer(5);
 
     for (int i = 0; i < numSamples; ++i)
     {
-        float inputL = channelInDataL[i];
-        float inputR = channelInDataR[i];
-        float sampleL = inputL;
-        float sampleR = inputR;
+        float inputL1 = channelInDataL1[i];
+        float inputR1 = channelInDataR1[i];
+        float sampleL1 = inputL1;
+        float sampleR1 = inputR1;
+
+        float inputL2 = channelInDataL2[i];
+        float inputR2 = channelInDataR2[i];
+        float sampleL2 = inputL2;
+        float sampleR2 = inputR2;
+
+        float inputL3 = channelInDataL3[i];
+        float inputR3 = channelInDataR3[i];
+        float sampleL3 = inputL3;
+        float sampleR3 = inputR3;
 
         //Effects
-        processDistortion(&sampleL, &sampleR);
+        processDistortion(&sampleL1, &sampleR1, 0);
+        processDistortion(&sampleL2, &sampleR2, 1);
+        processDistortion(&sampleL3, &sampleR3, 2);
         //processDelay(&sampleL, &sampleR, distortion);
         //processOctaver(&sampleL, &sampleR, distortion);
 
-        channelOutDataL[i] = sampleL;
-        channelOutDataR[i] = sampleR;
+        channelOutDataL1[i] = sampleL1;
+        channelOutDataR1[i] = sampleR1;
+        channelOutDataL2[i] = sampleL2;
+        channelOutDataR2[i] = sampleR2;
+        channelOutDataL3[i] = sampleL3;
+        channelOutDataR3[i] = sampleR3;
 
         dw = (dw + 1) % ds;
         dr = (dr + 1) % ds;
     }
 
-    processReverb(channelOutDataL, channelOutDataR, numSamples);
+    processReverb(channelOutDataL1, channelOutDataR1, numSamples, 0);
+    processReverb(channelOutDataL1, channelOutDataR1, numSamples, 1);
+    processReverb(channelOutDataL1, channelOutDataR1, numSamples, 2);
 }
 
 

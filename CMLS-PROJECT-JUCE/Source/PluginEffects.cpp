@@ -29,7 +29,6 @@ void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> add
 
 
     retrieveData(effectID, block);
-    setMainLabel(addFn, effectID, posX, posY);
 
     switch (block->numParams) {
     case 2:
@@ -55,34 +54,40 @@ void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> add
     int sliderWidth = 100;
     int sliderHeight = 100;
     int spacing = (600 - margin * 2 - block->numParams * sliderWidth) / (block->numParams-1);
+    int nextBlockSpacingX = 600;
+    bool isMiddleCol = false;
 
-    
-    for (int i = 0; i < block->numParams; ++i)
-    {
-        auto& slider = block->sliders[i];
-        auto& label = block->labels[i];
-        auto val = 0.5f;
-        float minVal = 0.0, maxVal = 1.0, step = 0.01;
+    for (int j = 0; j < 3; j++) {
+        isMiddleCol = j % 2 == 1;
 
-        slider->setSliderStyle(juce::Slider::Rotary);
-        slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-        slider->setRange(minVal, maxVal, step);
-        slider->setValue(val, juce::dontSendNotification);
-        slider->onValueChange = [slider, i]() {
-            DBG("Slider " << i << " value changed to: " << slider->getValue());
-            };
+        if (isMiddleCol) {
+            setMainLabel(addFn, effectID, posX + j * nextBlockSpacingX, posY);
+        }
 
-        label->setText(block->labelNames[i], juce::dontSendNotification);
-        label->attachToComponent(slider, false);
+        for (int i = 0; i < block->numParams; ++i)
+        {
+            auto& slider = block->sliders[i][j];
+            auto& label = block->labels[i][j];
+            auto val = 0.5f;
+            float minVal = 0.0, maxVal = 1.0, step = 0.01;
 
-        addFn(*slider);
-        addFn(*label);
+            slider.setSliderStyle(juce::Slider::Rotary);
+            slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+            slider.setRange(minVal, maxVal, step);
+            slider.setValue(val, juce::dontSendNotification);
 
-        int x = posX + margin + i * (sliderWidth + spacing);
-        int y = posY + sliderHeight;
-        slider->setBounds(x, y, sliderWidth, sliderHeight);
-        label->setBounds(x, y - 15, sliderWidth, 20);
-        label->setJustificationType(juce::Justification::centred);
+            label.setText(block->labelNames[i], juce::dontSendNotification);
+            label.attachToComponent(&slider, false);
+
+            addFn(slider);
+            addFn(label);
+
+            int x = posX + nextBlockSpacingX * j + margin + i * (sliderWidth + spacing);
+            int y = posY + sliderHeight;
+            slider.setBounds(x, y, sliderWidth, sliderHeight);
+            label.setBounds(x, y - 15, sliderWidth, 20);
+            label.setJustificationType(juce::Justification::centred);
+        }
     }
 }
 
@@ -97,14 +102,14 @@ void CMLSPROJECTJUCEEffects::processDelay(float* sampleL, float* sampleR, float 
 }
 
 
-void CMLSPROJECTJUCEEffects::processReverb(float* left, float* right, int numSamples)
+void CMLSPROJECTJUCEEffects::processReverb(float* left, float* right, int numSamples, int SuperCollComponent)
 {
-    float roomSize = reverbBlock.sliders[0]->getValue();
-    float damping = reverbBlock.sliders[1]->getValue();
-    float wetLevel = reverbBlock.sliders[2]->getValue();
-    float dryLevel = reverbBlock.sliders[3]->getValue();
-    float revWidth = reverbBlock.sliders[4]->getValue();
-    float freezeMode = reverbBlock.sliders[5]->getValue();
+    float roomSize = reverbBlock.sliders[0][SuperCollComponent].getValue();
+    float damping = reverbBlock.sliders[1][SuperCollComponent].getValue();
+    float wetLevel = reverbBlock.sliders[2][SuperCollComponent].getValue();
+    float dryLevel = reverbBlock.sliders[3][SuperCollComponent].getValue();
+    float revWidth = reverbBlock.sliders[4][SuperCollComponent].getValue();
+    float freezeMode = reverbBlock.sliders[5][SuperCollComponent].getValue();
 
     juce::Reverb::Parameters reverbParams = { roomSize, damping, wetLevel, dryLevel, revWidth, freezeMode};
 
@@ -114,10 +119,10 @@ void CMLSPROJECTJUCEEffects::processReverb(float* left, float* right, int numSam
     return;
 }
 
-void CMLSPROJECTJUCEEffects::processDistortion(float* sampleL, float* sampleR)
+void CMLSPROJECTJUCEEffects::processDistortion(float* sampleL, float* sampleR, int SuperCollComponent)
 {
-    float drive = distortionBlock.sliders[0]->getValue();
-    float mix = distortionBlock.sliders[1]->getValue();
+    float drive = distortionBlock.sliders[0][SuperCollComponent].getValue();
+    float mix = distortionBlock.sliders[1][SuperCollComponent].getValue();
 
     *sampleL = (1 - mix) * *sampleL + mix * juce::jlimit(-0.1f, 0.1f, *sampleL * drive);
     *sampleR = (1 - mix) * *sampleR + mix * juce::jlimit(-0.1f, 0.1f, *sampleR * drive);
@@ -126,14 +131,6 @@ void CMLSPROJECTJUCEEffects::processDistortion(float* sampleL, float* sampleR)
     return;
 }
 
-void CMLSPROJECTJUCEEffects::processOctaver(float* sampleL, float* sampleR, int octaverVal)
-{
-    if (octaverVal != 0) {
-
-    }
-
-    return;
-}
 
 void CMLSPROJECTJUCEEffects::setMainLabel(std::function<void(juce::Component&)> addFn, int effectID, int posX, int posY)
 {
