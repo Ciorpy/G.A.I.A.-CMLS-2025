@@ -83,12 +83,6 @@ OSCdef(\noteVal, { |msg|
 
 		"---------------------------".postln;
 
-		/*
-		// Invia i parametri normalizzati a Processing via OSC
-		n = NetAddr("127.0.0.1", 57121); // IP e porta di Processing
-		n.sendMsg("/env", ~tempRaw, ~humRaw, ~lightRaw); // temp, hum, light normalizzati
-		*/
-
 		0.2.wait;
 	}
 });
@@ -107,13 +101,13 @@ SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerB
 
 	// === Matrici armoniche ===
 	var basses = [
-		[0], [2], [7], [5], [7], [9], [4], [0], [0]
+		[0], [2], [7], [5], [7], [9], [4], [0], [2]
 	];
 
 	var chords = [
 		[0, 5, 12], [2, 9, 16], [0, 7, 14],
 		[5, 9, 14], [7, 11, 16], [9, 14, 21],
-		[4, 7, 12], [0, 4, 11, 16], [0, 2, 9, 14]
+		[4, 7, 12], [4, 11, 16], [0, 9, 14]
 	];
 
 	// === Triggering ===
@@ -142,15 +136,10 @@ SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerB
 		Blip.ar(chordFreqs[i], numHarm, 0.2)
 	});
 
-	// === SOMMA BASSO + ACCORDI ===
-	var harmonyDry = bassSig + chordSig;
-
-	/*
-	// === Ritardo + dissolvenza (crossfade del blocco precedente) ===
-	// var fadeOut = EnvGen.kr(Env([1, 0], [2]), gate: barTrig).delay(durBar);
-	var fadeOut = DelayL.kr(Line.kr(1, 0, 2), durBar, durBar - 0.5);
-	var harmonyDelayed = DelayN.ar(harmonyDry, durBar, durBar - 0.5) * 0.2;
-	*/
+	// === SOMMA BASSO + ACCORDI CON MODULAZIONE===
+	var lfoFreq = hum.linlin(0, 1, 0.2, 0.05); // 5–20 sec
+	var ampLfo = SinOsc.kr(lfoFreq).range(0.3, 0.7);
+	var harmonyDry = (bassSig + chordSig) * ampLfo;
 
 	// === Riverbero controllato da umidità ===
 	var dryWet = hum.linlin(0.0, 1.0, 0.1, 0.6);
@@ -172,7 +161,7 @@ SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerB
 
 	// === Mix e Output ===
 	var sig = harmony + noteSig;
-	Out.ar(out, [sig, sig]);
+	Out.ar(out, [harmony, harmony]);
 }).add;
 )
 
