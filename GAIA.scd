@@ -17,7 +17,8 @@ Senza Arduino e quindi con simulatore:
 
 // === SETUP E CONTROLLI ===
 s.reboot; // Riavvia il server audio
-s.options.outDevice = "CABLE Input (VB-Audio Virtual Cable)"; // Uscita audio virtuale
+s.options.outDevice = "Output (VB-Audio Point)"; // Uscita audio virtuale
+s.options.numOutputBusChannels = 6; // Usiamo 6 uscite
 
 NetAddr.langPort; // Verifica la porta del linguaggio per OSC
 OSCFunc.trace(true);  // Attiva la stampa di tutti i messaggi OSC ricevuti
