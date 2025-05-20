@@ -17,8 +17,7 @@ Senza Arduino e quindi con simulatore:
 
 // === SETUP E CONTROLLI ===
 s.reboot; // Riavvia il server audio
-s.options.outDevice = "Output (VB-Audio Point)"; // Uscita audio virtuale
-s.options.numOutputBusChannels = 6; // Usiamo 6 uscite
+s.options.outDevice = "CABLE Input (VB-Audio Virtual Cable)"; // Uscita audio virtuale
 
 NetAddr.langPort; // Verifica la porta del linguaggio per OSC
 OSCFunc.trace(true);  // Attiva la stampa di tutti i messaggi OSC ricevuti
@@ -41,13 +40,13 @@ OSCFunc.trace(false); // Disattivala quando non serve
 // === Ricezione OSC e aggiornamento synth ===
 OSCdef(\temp, { |msg|
 	~tempRaw = msg[1];
-	~tonalCenter = (~tempRaw.linlin(1500, 3500, 0, 11)).floor.clip(0, 11);
+	~tonalCenter = (~tempRaw.linlin(2500, 3000, 0, 11)).floor.clip(0, 11);
 	~synth.set(\tonalCenter, ~tonalCenter);
 }, "/sensors/temp");
 
 OSCdef(\hum, { |msg|
 	~humRaw = msg[1];
-	~hum = ~humRaw.linlin(1000, 9000, 0.0, 1.0).clip(0.0, 1.0);
+	~hum = ~humRaw.linlin(5000, 8000, 0.0, 1.0).clip(0.0, 1.0);
 	~synth.set(\hum, ~hum);
 }, "/sensors/humi");
 
@@ -163,7 +162,7 @@ SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerB
 	var room = hum.linlin(0.0, 1.0, 0.5, 1.0);
 
 	// === Inviluppo per accordi ===
-	var envHarmony = EnvGen.kr(Env.linen(1.0, (durBar - 2.0), 1.0), gate: barTrig);
+	var envHarmony = EnvGen.kr(Env.linen(1.8, (durBar - 3.6), 1.8), gate: barTrig);
 
 	var bassSigWet = envHarmony * FreeVerb.ar(
 		bassSigDry, mix: dryWet, room: room, damp: 0.6
@@ -182,7 +181,8 @@ SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerB
 
 	var noteSig = noteEnv * SinOsc.ar(noteFreq, 0, 0.3);
 
-	Out.ar(out, [chordSigWet, chordSigWet, bassSigDry, bassSigDry, noteSig, noteSig]);
+	//Out.ar(out, [bassSigWet + chordSigWet + noteSig, bassSigWet + chordSigWet + noteSig]);
+	Out.ar(out, [chordSigWet, chordSigWet, bassSigWet, bassSigWet, noteSig, noteSig]);
 }).add;
 )
 
