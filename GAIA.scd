@@ -151,10 +151,11 @@ SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerB
 		Blip.ar(chordFreqs[i], numHarm, 0.2)
 	});
 
-	// === SOMMA BASSO + ACCORDI CON MODULAZIONE===
+	// === BASSO + ACCORDI CON MODULAZIONE===
 	var lfoFreq = hum.linlin(0, 1, 0.2, 0.05); // 5–20 sec
 	var ampLfo = SinOsc.kr(lfoFreq).range(0.3, 0.7);
-	var harmonyDry = (bassSig + chordSig) * ampLfo;
+	var bassSigDry = bassSig * ampLfo;
+	var chordSigDry = chordSig * ampLfo;
 
 	// === Riverbero controllato da umidità ===
 	var dryWet = hum.linlin(0.0, 1.0, 0.1, 0.6);
@@ -163,8 +164,11 @@ SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerB
 	// === Inviluppo per accordi ===
 	var envHarmony = EnvGen.kr(Env.linen(1.0, (durBar - 2.0), 1.0), gate: barTrig);
 
-	var harmony = envHarmony * FreeVerb.ar(
-		harmonyDry, mix: dryWet, room: room, damp: 0.6
+	var bassSigWet = envHarmony * FreeVerb.ar(
+		bassSigDry, mix: dryWet, room: room, damp: 0.6
+	);
+	var chordSigWet = envHarmony * FreeVerb.ar(
+		chordSigDry, mix: dryWet, room: room, damp: 0.6
 	);
 
 	// === Note singole ===
@@ -177,9 +181,7 @@ SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerB
 
 	var noteSig = noteEnv * SinOsc.ar(noteFreq, 0, 0.3);
 
-	// === Mix e Output ===
-	var sig = harmony + noteSig;
-	Out.ar(out, [harmony, harmony]);
+	Out.ar(out, [chordSigWet, chordSigWet, bassSigDry, bassSigDry, noteSig, noteSig]);
 }).add;
 )
 
