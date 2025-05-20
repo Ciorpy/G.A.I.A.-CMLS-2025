@@ -63,7 +63,7 @@ private:
     };
 
     // - Reverb ----------------------------------------------------------------------------------------------------------
-    juce::Reverb reverbHandler;
+    juce::Reverb reverbHandler[3];
     juce::Label reverbMainLabel;
     
     // - Knobs -
