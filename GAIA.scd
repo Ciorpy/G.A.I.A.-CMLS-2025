@@ -1,8 +1,30 @@
-s.options.blockSize = 64;
+/*
+=== GUIDA ALL'UTILIZZO ===
+
+Con Arduino avviare in quest'ordine:
+1. "SETUP E CONTROLLI" (solo ciò che è necessario),
+2. "VARIABILI E RICEZIONE OSC",
+3. "ROUTINE DI STAMPA",
+4. "SYNTH",
+5. "START WITH ARDUINO".
+
+Senza Arduino e quindi con simulatore:
+1. "SETUP E CONTROLLI" (solo ciò che è necessario),
+2. "SYNTH",
+3. "SIMULATORE ARDUINO",
+4. "START WITH SIMULATORE".
+*/
+
+// === SETUP E CONTROLLI ===
 s.reboot; // Riavvia il server audio
-NetAddr.langPort; // Verifica la porta del linguaggio per OSC
 s.options.outDevice = "CABLE Input (VB-Audio Virtual Cable)"; // Uscita audio virtuale
 
+NetAddr.langPort; // Verifica la porta del linguaggio per OSC
+OSCFunc.trace(true);  // Attiva la stampa di tutti i messaggi OSC ricevuti
+OSCFunc.trace(false); // Disattivala quando non serve
+
+
+// === VARIABILI E RICEZIONE OSC ===
 (
 // === Variabili globali ===
 ~tempRaw = 0; ~tonalCenter = 0;
@@ -18,13 +40,13 @@ s.options.outDevice = "CABLE Input (VB-Audio Virtual Cable)"; // Uscita audio vi
 // === Ricezione OSC e aggiornamento synth ===
 OSCdef(\temp, { |msg|
 	~tempRaw = msg[1];
-	~tonalCenter = (~tempRaw.linlin(2000, 3000, 0, 11)).floor.clip(0, 11);
+	~tonalCenter = (~tempRaw.linlin(1500, 3500, 0, 11)).floor.clip(0, 11);
 	~synth.set(\tonalCenter, ~tonalCenter);
 }, "/sensors/temp");
 
 OSCdef(\hum, { |msg|
 	~humRaw = msg[1];
-	~hum = ~humRaw.linlin(3000, 8000, 0.0, 1.0).clip(0.0, 1.0);
+	~hum = ~humRaw.linlin(1000, 9000, 0.0, 1.0).clip(0.0, 1.0);
 	~synth.set(\hum, ~hum);
 }, "/sensors/humi");
 
@@ -61,13 +83,9 @@ OSCdef(\noteVal, { |msg|
 )
 
 
+// === ROUTINE DI STAMPA ===
 (
 ~reader = Routine({
-
-	var normTemp;
-    var normHum;
-    var normLight;
-
 	loop {
 		("Temp: " ++ (~tempRaw / 100).round(0.01) ++ " °C"
 		 ++ " | Hum: " ++ (~humRaw / 100).round(0.01) ++ " %"
@@ -89,10 +107,7 @@ OSCdef(\noteVal, { |msg|
 )
 
 
-OSCFunc.trace(true);  // Attiva la stampa di tutti i messaggi OSC ricevuti
-OSCFunc.trace(false); // Disattivala quando non serve
-
-
+// === SYNTH ===
 (
 SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerBar = 0, durBar = 10, triggerNote = 0, noteVal = 0, durNote = 0.5, out = 0 |
 
@@ -145,7 +160,10 @@ SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerB
 	var dryWet = hum.linlin(0.0, 1.0, 0.1, 0.6);
 	var room = hum.linlin(0.0, 1.0, 0.5, 1.0);
 
-	var harmony = FreeVerb.ar(
+	// === Inviluppo per accordi ===
+	var envHarmony = EnvGen.kr(Env.linen(1.0, (durBar - 2.0), 1.0), gate: barTrig);
+
+	var harmony = envHarmony * FreeVerb.ar(
 		harmonyDry, mix: dryWet, room: room, damp: 0.6
 	);
 
@@ -165,8 +183,107 @@ SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerB
 }).add;
 )
 
-
+// === START WITH ARDUINO ===
 (
 ~reader.play;  // Avvia la console lettura
 ~synth = Synth(\GAIA);  // Avvia il synth
 )
+
+// === SIMULATORE ARDUINO ===
+(
+var now;
+
+// DESTINATARI DI SERVIZIO
+~pr = NetAddr("127.0.0.1", 57130); // Processing
+~jc = NetAddr("127.0.0.1", 57140); // JUCE
+
+// === INIZIALIZZAZIONE ===
+~tempRaw = 2500;
+~humRaw = 5000;
+~lightRaw = 2048;
+
+~durBar = rrand(5000, 15000);   // ms
+~durNote = rrand(1500, 3000);   // ms
+~noteVal = rrand(0, 11);
+
+~triggerBar = 0;
+~triggerNote = 0;
+
+~barStart = Main.elapsedTime;
+~noteStart = Main.elapsedTime;
+
+// === LOOP DI SIMULAZIONE ===
+~simulateArduino = Routine({
+	loop {
+		now = Main.elapsedTime;
+
+		// === TRIGGER BAR ===
+		if (((now - ~barStart) * 1000) >= ~durBar) {
+			~triggerBar = 1;
+			~durBar = rrand(5000, 15000);
+			~barStart = now;
+		} {
+			~triggerBar = 0;
+		};
+
+		// === TRIGGER NOTE ===
+		if (((now - ~noteStart) * 1000) >= ~durNote) {
+			~triggerNote = 1;
+			~durNote = rrand(1500, 3000);
+			~noteVal = rrand(0, 11);
+			~noteStart = now;
+		} {
+			~triggerNote = 0;
+		};
+
+		// === SENSORI SIMULATI ===
+		~tempRaw = rrand(1500, 3500);
+		~humRaw = rrand(1000, 9000);
+		~lightRaw = rrand(0, 4095);
+
+		// === AGGIORNA SINTETIZZATORE DIRETTAMENTE ===
+		~synth.set(
+			\tonalCenter, ((~tempRaw.linlin(1500, 3500, 0, 11)).floor.clip(0, 11)),
+			\hum, (~humRaw.linlin(1000, 9000, 0.0, 1.0).clip(0, 1)),
+			\light, (~lightRaw.linlin(0, 4095, 0.0, 1.0).clip(0, 1)),
+			\triggerBar, ~triggerBar,
+			\durBar, (~durBar / 1000),
+			\triggerNote, ~triggerNote,
+			\durNote, (~durNote / 1000),
+			\noteVal, ~noteVal
+		);
+
+		// === DEBUG STAMPA ===
+		("Temp: " ++ (~tempRaw / 100).round(0.01) ++ " °C"
+		 ++ " | Hum: " ++ (~humRaw / 100).round(0.01) ++ " %"
+		 ++ " | Light: " ++ ~lightRaw).postln;
+
+		("Tonal Center: " ++ (~tempRaw.linlin(1500, 3500, 0, 11)).floor
+		 ++ " | triggerBar: " ++ ~triggerBar
+		 ++ " | durBar: " ++ (~durBar / 1000).round(0.01) ++ " s").postln;
+
+		("Note: " ++ ~noteVal
+		 ++ " | Trig: " ++ ~triggerNote
+		 ++ " | durNote: " ++ (~durNote / 1000).round(0.01) ++ " s").postln;
+
+		"--------------------------".postln;
+
+		// === INVIO A PROCESSING ===
+		~pr.sendMsg("/sensors/temp", ~tempRaw);
+		~pr.sendMsg("/sensors/humi", ~humRaw);
+		~pr.sendMsg("/sensors/rldr", ~lightRaw);
+
+		// === INVIO A JUCE ===
+		~jc.sendMsg("/sensors/temp", ~tempRaw);
+		~jc.sendMsg("/sensors/humi", ~humRaw);
+		~jc.sendMsg("/sensors/rldr", ~lightRaw);
+
+		0.2.wait;
+	}
+}).play(SystemClock);
+)
+
+
+// === START WITH SIMULATORE ===
+~synth = Synth(\GAIA);  // Avvia il synth
+

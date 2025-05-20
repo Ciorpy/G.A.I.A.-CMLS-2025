@@ -24,7 +24,7 @@ void setup(){
 void draw(){
   blendMode(ADD);
   background(0);
-  ps.followEnv(light, light*100, light*100);
+  ps.followEnv(temp, hum, light);
   ps.draw();
 }
 
@@ -36,11 +36,11 @@ void oscEvent(OscMessage msg) {
 
   try {
     if (msg.checkAddrPattern("/sensors/temp") && msg.checkTypetag("i")) {
-      temp = msg.get(0).intValue();
+      temp = (msg.get(0).intValue() - 1500.0) / 3500.0;
     }
 
     if (msg.checkAddrPattern("/sensors/humi") && msg.checkTypetag("i")) {
-      hum = msg.get(0).intValue();
+      hum = (msg.get(0).intValue() - 1000) / 9000;
     }
 
     if (msg.checkAddrPattern("/sensors/rldr") && msg.checkTypetag("i")) {
