@@ -15,10 +15,17 @@
 class CMLSPROJECTJUCEEffects
 {
 public:
+    enum SuperColliderComponent {
+        Chords,
+        Bass,
+        Notes
+    };
+
     // Audio processing
     juce::AudioSampleBuffer dbuf;
-    int dw[3];
-    int dr[3];
+    int bufferSize = 100000;
+    int dw[3]{};
+    int dr[3]{};
 
     void setupMixerUI(std::function<void(juce::Component&)> addFn);
 
@@ -38,13 +45,6 @@ private:
         Distortion,
         Octaver
     };
-
-    enum SuperColliderComponent {
-        Chords,
-        Bass,
-        Notes
-    };
-
 
     struct EffectUIBlock
     {
