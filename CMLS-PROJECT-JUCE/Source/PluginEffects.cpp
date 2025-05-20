@@ -15,6 +15,9 @@
 int CMLSPROJECTJUCEEffects::getDelayDS(int SuperCollComponent)
 {
     int v = delayBlock.sliders[2][SuperCollComponent].getValue();
+    if (v <= 0)
+        v = 50000;
+    DBG("getDelayDS(" << SuperCollComponent << ") = " << v);
     return v;
 }
 
@@ -79,10 +82,10 @@ void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> add
 
 			if (effectID == Delay && i == block->numParams - 1)
 			{
-				minVal = 500.0f;
-				maxVal = 50000.0f;
+				minVal = 100.0f;
+				maxVal = 5000.0f;
 				step = 100.0f;
-                val = 50000.0f;
+                val = 500.0f;
 			}
 
             slider.setSliderStyle(juce::Slider::Rotary);
@@ -128,8 +131,8 @@ void CMLSPROJECTJUCEEffects::processDelay(float* left, float* right, int SuperCo
 		break;
 	}
 
-    float wetLevel = reverbBlock.sliders[0][SuperCollComponent].getValue();
-    float dryLevel = reverbBlock.sliders[1][SuperCollComponent].getValue();
+    float wetLevel = delayBlock.sliders[0][SuperCollComponent].getValue();
+    float dryLevel = delayBlock.sliders[1][SuperCollComponent].getValue();
 
     dbuf.setSample(leftIndex, dw[SuperCollComponent], *left);
     dbuf.setSample(rightIndex, dw[SuperCollComponent], *right);

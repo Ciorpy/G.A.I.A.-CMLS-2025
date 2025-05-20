@@ -153,6 +153,8 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
     const float* channelInDataL3 = buffer.getReadPointer(4);
     const float* channelInDataR3 = buffer.getReadPointer(5);
 
+    int ds_now[3] = { getDelayDS(0), getDelayDS(1), getDelayDS(2) };
+
     for (int i = 0; i < numSamples; ++i)
     {
         float inputL1 = channelInDataL1[i];
@@ -176,8 +178,8 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
         processDistortion(&sampleL3, &sampleR3, 2);
 
 		processDelay(&sampleL1, &sampleR1, 0);
-        processDelay(&sampleL2, &sampleR2, 0);
-        processDelay(&sampleL3, &sampleR3, 0);
+        processDelay(&sampleL2, &sampleR2, 1);
+        processDelay(&sampleL3, &sampleR3, 2);
 
         channelOutDataL1[i] = sampleL1;
         channelOutDataR1[i] = sampleR1;
@@ -186,15 +188,20 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
         channelOutDataL3[i] = sampleL3;
         channelOutDataR3[i] = sampleR3;
 
-        dw[0] = (dw[0] + 1) % getDelayDS(0);
-        dr[0] = (dr[0] + 1) % getDelayDS(0);
+        dw[0] = (dw[0] + 1) % ds_now[0];
+        dr[0] = (dr[0] + 1) % ds_now[0];
 
-		dw[1] = (dw[1] + 1) % getDelayDS(1);
-		dr[1] = (dr[1] + 1) % getDelayDS(1);
+		dw[1] = (dw[1] + 1) % ds_now[1];
+		dr[1] = (dr[1] + 1) % ds_now[1];
 
-		dw[2] = (dw[2] + 1) % getDelayDS(2);
-		dr[2] = (dr[2] + 1) % getDelayDS(2);
+		dw[2] = (dw[2] + 1) % ds_now[2];
+		dr[2] = (dr[2] + 1) % ds_now[2];
     }
+
+    dr[0] = (dw[0] - ds_now[0] + 100000) % 100000;
+    dr[1] = (dw[1] - ds_now[1] + 100000) % 100000;
+    dr[2] = (dw[2] - ds_now[2] + 100000) % 100000;
+
 
     processReverb(channelOutDataL1, channelOutDataR1, numSamples, 0);
     processReverb(channelOutDataL2, channelOutDataR2, numSamples, 1);
