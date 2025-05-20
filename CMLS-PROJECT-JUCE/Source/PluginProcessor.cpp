@@ -99,10 +99,11 @@ void CMLSPROJECTJUCEAudioProcessor::prepareToPlay (double sampleRate, int sample
 
     dbuf.setSize(getTotalNumOutputChannels(), 100000);
     dbuf.clear();
-
-    dw = 0;
-    dr = 1;
-    //ds = 50000;
+	for (int i = 0; i < 3; ++i)
+	{
+		dr[i] = 0;
+		dw[i] = 1;
+	}
 
 }
 
@@ -173,8 +174,10 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
         processDistortion(&sampleL1, &sampleR1, 0);
         processDistortion(&sampleL2, &sampleR2, 1);
         processDistortion(&sampleL3, &sampleR3, 2);
-        //processDelay(&sampleL, &sampleR, distortion);
-        //processOctaver(&sampleL, &sampleR, distortion);
+
+		processDelay(&sampleL1, &sampleR1, 0);
+        processDelay(&sampleL2, &sampleR2, 0);
+        processDelay(&sampleL3, &sampleR3, 0);
 
         channelOutDataL1[i] = sampleL1;
         channelOutDataR1[i] = sampleR1;
@@ -183,8 +186,14 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
         channelOutDataL3[i] = sampleL3;
         channelOutDataR3[i] = sampleR3;
 
-        dw = (dw + 1) % ds;
-        dr = (dr + 1) % ds;
+        dw[0] = (dw[0] + 1) % getDelayDS(0);
+        dr[0] = (dr[0] + 1) % getDelayDS(0);
+
+		dw[1] = (dw[1] + 1) % getDelayDS(1);
+		dr[1] = (dr[1] + 1) % getDelayDS(1);
+
+		dw[2] = (dw[2] + 1) % getDelayDS(2);
+		dr[2] = (dr[2] + 1) % getDelayDS(2);
     }
 
     processReverb(channelOutDataL1, channelOutDataR1, numSamples, 0);

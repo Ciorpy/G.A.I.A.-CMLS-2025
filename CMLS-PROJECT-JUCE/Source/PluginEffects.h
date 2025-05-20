@@ -15,26 +15,21 @@
 class CMLSPROJECTJUCEEffects
 {
 public:
-    // Variables related to effects
-    float wet;
-    float dry;
-    int ds = 44100;
-
-    float delayVal = 0.0f;
-    float reverbVal = 0.0f;
-    float distortionVal = 0.0f;
-    float octaverVal = 0.0f;
-
-    std::array<float*, 4> effectsValuesArray = { &distortionVal, &delayVal, &reverbVal, &octaverVal };
-
+    // Audio processing
+    juce::AudioSampleBuffer dbuf;
+    int dw[3];
+    int dr[3];
 
     void setupMixerUI(std::function<void(juce::Component&)> addFn);
 
-    void processDelay(float* sampleL, float* sampleR, float delayVal);
+	void processDelay(float* left, float* right, int SuperCollComponent);
     void processReverb(float* left, float* right, int numSamples, int SuperCollComponent);
     void processDistortion(float* sample, float* sampleR, int SuperCollComponent);
 
+    int getDelayDS(int SuperCollComponent);
 private:
+
+
     enum EffectID {
         WahWah,
         Reverb,
@@ -90,6 +85,15 @@ private:
 
     EffectUIBlock distortionBlock = { distortionSliders, distortionLabels, distortionLabelNames, 2 };
 
+	// - Delay ----------------------------------------------------------------------------------------------------------
+	juce::Label delayMainLabel;
+
+	juce::Slider delaySliders[3][3];
+	juce::Label delayLabels[3][3];
+
+	juce::String delayLabelNames[3] = { "Wet Level", "Dry Level", "Delay seconds"};
+
+	EffectUIBlock delayBlock = { delaySliders, delayLabels, delayLabelNames, 3 };
 
     // - FUNCTIONS AND PROCEDURES ------------------------------------------------------------------------------------------------------------
 

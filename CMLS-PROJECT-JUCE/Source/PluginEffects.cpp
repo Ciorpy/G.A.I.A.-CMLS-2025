@@ -12,11 +12,17 @@
 #include "PluginEffects.h"
 
 
+int CMLSPROJECTJUCEEffects::getDelayDS(int SuperCollComponent)
+{
+    int v = delayBlock.sliders[2][SuperCollComponent].getValue();
+    return v;
+}
+
 void CMLSPROJECTJUCEEffects::setupMixerUI(std::function<void(juce::Component&)> addFn)
 {
     setUpArea(addFn, Reverb, 0, 0);
     setUpArea(addFn, Distortion, 0, 300);
-    //setUpArea(addFn, Distortion, distortionBlock);
+    setUpArea(addFn, Delay, 0, 600);
     //setUpArea(addFn, Distortion, distortionBlock);
     //setUpArea(addFn, Distortion, distortionBlock);
     //setUpArea(addFn, Distortion, distortionBlock);
@@ -71,6 +77,14 @@ void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> add
             auto val = 0.5f;
             float minVal = 0.0, maxVal = 1.0, step = 0.01;
 
+			if (effectID == Delay && i == block->numParams - 1)
+			{
+				minVal = 500.0f;
+				maxVal = 50000.0f;
+				step = 100.0f;
+                val = 50000.0f;
+			}
+
             slider.setSliderStyle(juce::Slider::Rotary);
             slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
             slider.setRange(minVal, maxVal, step);
@@ -92,12 +106,36 @@ void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> add
 }
 
 
-void CMLSPROJECTJUCEEffects::processDelay(float* sampleL, float* sampleR, float delayVal)
+void CMLSPROJECTJUCEEffects::processDelay(float* left, float* right, int SuperCollComponent)
 {
-    if (delayVal != 0.0f) {
+    int leftIndex = 0;
+    int rightIndex = 0;
+	switch (SuperCollComponent)
+	{
+	case 0:
+        leftIndex = 0;
+        rightIndex = 1;
+		break;
+	case 1:
+        leftIndex = 2;
+        rightIndex = 3;
+		break;
+	case 2:
+        leftIndex = 4;
+        rightIndex = 5;
+		break;
+	default:
+		break;
+	}
 
-    }
+    float wetLevel = reverbBlock.sliders[0][SuperCollComponent].getValue();
+    float dryLevel = reverbBlock.sliders[1][SuperCollComponent].getValue();
 
+    dbuf.setSample(leftIndex, dw[SuperCollComponent], *left);
+    dbuf.setSample(rightIndex, dw[SuperCollComponent], *right);
+
+    *left = dryLevel * *left + wetLevel * dbuf.getSample(leftIndex, dr[SuperCollComponent]);
+    *right = dryLevel * *right + wetLevel * dbuf.getSample(rightIndex, dr[SuperCollComponent]);
     return;
 }
 
@@ -146,7 +184,7 @@ void CMLSPROJECTJUCEEffects::setMainLabel(std::function<void(juce::Component&)> 
         break;
 
     case EffectID::Delay:
-        mainLabel = NULL;
+        mainLabel = &delayMainLabel;
         mainLabelTitle = "Delay";
         break;
 
@@ -196,6 +234,7 @@ void CMLSPROJECTJUCEEffects::retrieveData(int effectID, EffectUIBlock*& block)
         break;
 
     case EffectID::Delay:
+        block = &delayBlock;
         break;
 
     case EffectID::Reverb:
