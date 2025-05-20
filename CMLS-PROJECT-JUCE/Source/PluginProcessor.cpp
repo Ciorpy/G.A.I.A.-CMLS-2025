@@ -137,75 +137,60 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
+    // Pulizia buffer
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear(i, 0, numSamples);
 
-    float* channelOutDataL1 = buffer.getWritePointer(0);
-    float* channelOutDataR1 = buffer.getWritePointer(1);
-    float* channelOutDataL2 = buffer.getWritePointer(2);
-    float* channelOutDataR2 = buffer.getWritePointer(3);
-    float* channelOutDataL3 = buffer.getWritePointer(4);
-    float* channelOutDataR3 = buffer.getWritePointer(5);
-    const float* channelInDataL1 = buffer.getReadPointer(0);
-    const float* channelInDataR1 = buffer.getReadPointer(1);
-    const float* channelInDataL2 = buffer.getReadPointer(2);
-    const float* channelInDataR2 = buffer.getReadPointer(3);
-    const float* channelInDataL3 = buffer.getReadPointer(4);
-    const float* channelInDataR3 = buffer.getReadPointer(5);
+    // Riferimenti a write e read pointer del buffer
+    float* channelOutData[6]{};
+    const float* channelInData[6]{};
 
-    int ds_now[3] = { getDelayDS(0), getDelayDS(1), getDelayDS(2) };
+    for (int i = 0; i < totalNumInputChannels; i++) {
+        channelOutData[i] = buffer.getWritePointer(i);
+        channelInData[i] = buffer.getReadPointer(i);
+    }
+
+    // Variabile che permette la corretta applicazione dei delay
+    int ds_now[3] = { getDelayDS(Chords), getDelayDS(Bass), getDelayDS(Notes) };
+
+    // 
+    int leftIndex = 0, rightIndex = 1;
 
     for (int i = 0; i < numSamples; ++i)
     {
-        float inputL1 = channelInDataL1[i];
-        float inputR1 = channelInDataR1[i];
-        float sampleL1 = inputL1;
-        float sampleR1 = inputR1;
+        for (int j = 0; j < totalNumInputChannels / 2; j++) {
+            leftIndex = j * 2;
+            rightIndex = j * 2 + 1;
 
-        float inputL2 = channelInDataL2[i];
-        float inputR2 = channelInDataR2[i];
-        float sampleL2 = inputL2;
-        float sampleR2 = inputR2;
+            float left = channelInData[leftIndex][i];
+            float right = channelInData[rightIndex][i];
 
-        float inputL3 = channelInDataL3[i];
-        float inputR3 = channelInDataR3[i];
-        float sampleL3 = inputL3;
-        float sampleR3 = inputR3;
+            // Copia input
+            float processedLeft = left;
+            float processedRight = right;
 
-        //Effects
-        processDistortion(&sampleL1, &sampleR1, 0);
-        processDistortion(&sampleL2, &sampleR2, 1);
-        processDistortion(&sampleL3, &sampleR3, 2);
+            // Applica effetti
+            processDistortion(&processedLeft, &processedRight, j);
+            processDelay(&processedLeft, &processedRight, j);
 
-		processDelay(&sampleL1, &sampleR1, 0);
-        processDelay(&sampleL2, &sampleR2, 1);
-        processDelay(&sampleL3, &sampleR3, 2);
+            // Scrivi nel buffer di output
+            channelOutData[leftIndex][i] = processedLeft;
+            channelOutData[rightIndex][i] = processedRight;
 
-        channelOutDataL1[i] = sampleL1;
-        channelOutDataR1[i] = sampleR1;
-        channelOutDataL2[i] = sampleL2;
-        channelOutDataR2[i] = sampleR2;
-        channelOutDataL3[i] = sampleL3;
-        channelOutDataR3[i] = sampleR3;
-
-        dw[0] = (dw[0] + 1) % ds_now[0];
-        dr[0] = (dr[0] + 1) % ds_now[0];
-
-		dw[1] = (dw[1] + 1) % ds_now[1];
-		dr[1] = (dr[1] + 1) % ds_now[1];
-
-		dw[2] = (dw[2] + 1) % ds_now[2];
-		dr[2] = (dr[2] + 1) % ds_now[2];
+            dw[j] = (dw[j] + 1) % ds_now[j];
+            dr[j] = (dr[j] + 1) % ds_now[j];
+        }
     }
 
-    dr[0] = (dw[0] - ds_now[0] + 100000) % 100000;
-    dr[1] = (dw[1] - ds_now[1] + 100000) % 100000;
-    dr[2] = (dw[2] - ds_now[2] + 100000) % 100000;
+    for (int j = 0; j < totalNumInputChannels / 2; j++) {
+        leftIndex = j * 2;
+        rightIndex = j * 2 + 1;
 
+        dr[j] = (dw[j] - ds_now[j] + 100000) % 100000;
 
-    processReverb(channelOutDataL1, channelOutDataR1, numSamples, 0);
-    processReverb(channelOutDataL2, channelOutDataR2, numSamples, 1);
-    processReverb(channelOutDataL3, channelOutDataR3, numSamples, 2);
+        // A questo punto channelOutData[x] punta ancora al buffer originale
+        processReverb(channelOutData[leftIndex], channelOutData[rightIndex], numSamples, j);
+    }
 }
 
 

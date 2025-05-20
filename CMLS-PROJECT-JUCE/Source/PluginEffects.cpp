@@ -16,7 +16,7 @@ int CMLSPROJECTJUCEEffects::getDelayDS(int SuperCollComponent)
 {
     int v = delayBlock.sliders[2][SuperCollComponent].getValue();
     if (v <= 0)
-        v = 50000;
+        v = 500;
     DBG("getDelayDS(" << SuperCollComponent << ") = " << v);
     return v;
 }
