@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="RjIAic" name="CMLS-PROJECT-JUCE" projectType="audioplug"
-              useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
+              useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1"
+              pluginFormats="buildAU,buildVST3">
   <MAINGROUP id="Qst0v0" name="CMLS-PROJECT-JUCE">
     <GROUP id="{07936A78-F914-0D55-70DB-31C122B7B4F7}" name="Source">
       <FILE id="Ed9iST" name="PluginEffects.cpp" compile="1" resource="0"
