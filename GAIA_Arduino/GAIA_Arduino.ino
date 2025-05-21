@@ -10,9 +10,9 @@
 DHT dht(DHTPIN, DHTTYPE);
 WiFiUDP Udp;
 
-const char* ssidList[] = {"G52DT", "Appartamento II Piano"};
-const char* passList[] = {"GDThotspot", "benvenuti!"};
-const int numNetworks = 2;
+const char* ssidList[] = {"XXX"};
+const char* passList[] = {"XXXXXXXXX"};
+const int numNetworks = 1;
 
 IPAddress remoteIP(192, 168, 123, 50);
 unsigned int remotePort[] = {57120, 57130};
