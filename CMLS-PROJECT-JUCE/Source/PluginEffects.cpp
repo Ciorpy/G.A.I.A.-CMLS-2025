@@ -23,8 +23,8 @@ int CMLSPROJECTJUCEEffects::getDelayDS()
 void CMLSPROJECTJUCEEffects::setupMixerUI(std::function<void(juce::Component&)> addFn)
 {
     setUpArea(addFn, Reverb, 0, 0);
-    setUpArea(addFn, Distortion, 0, 300);
-    setUpArea(addFn, Delay, 0, 600);
+    setUpArea(addFn, Distortion, 600, 0);
+    setUpArea(addFn, Delay, 1200, 0);
 }
 
 void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> addFn, int effectID, int posX, int posY)
@@ -59,6 +59,8 @@ void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> add
     int sliderWidth = 100;
     int sliderHeight = 100;
     int spacing = (600 - margin * 2 - block->numParams * sliderWidth) / (block->numParams-1);
+
+    setMainLabel(addFn, effectID, posX, posY);
     
     for (int i = 0; i < block->numParams; ++i)
     {

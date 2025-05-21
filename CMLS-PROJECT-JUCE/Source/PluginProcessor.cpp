@@ -153,8 +153,6 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
     float* channelOutDataR = buffer.getWritePointer(1);
  
     int ds_now = getDelayDS();
-    int dw = getDW();
-    int dr = getDR();
 
     int leftIndex = 0, rightIndex = 1;
 
@@ -172,7 +170,7 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
 
         // Applica effetti
         processDistortion(&processedLeft, &processedRight);
-        processDelay(&processedLeft, &processedRight);
+        processDelay(&processedLeft, &processedRight, dw, dr);
 
         // Scrivi nel buffer di output
         channelOutDataL[i] = processedLeft;
