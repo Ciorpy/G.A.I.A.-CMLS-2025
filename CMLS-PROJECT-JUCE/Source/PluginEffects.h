@@ -15,12 +15,6 @@
 class CMLSPROJECTJUCEEffects
 {
 public:
-    enum SuperColliderComponent {
-        Chords,
-        Bass,
-        Notes
-    };
-
     // Audio processing
     juce::AudioSampleBuffer dbuf;
     int bufferSize = 100000;
@@ -29,31 +23,28 @@ public:
 
     void setupMixerUI(std::function<void(juce::Component&)> addFn);
 
-	void processDelay(float* left, float* right, int SuperCollComponent);
-    void processReverb(float* left, float* right, int numSamples, int SuperCollComponent);
-    void processDistortion(float* sample, float* sampleR, int SuperCollComponent);
+	void processDelay(float* left, float* right);
+    void processReverb(float* left, float* right, int numSamples);
+    void processDistortion(float* sample, float* sampleR);
 
     int getDelayDS(int SuperCollComponent);
 private:
 
 
     enum EffectID {
-        WahWah,
         Reverb,
         Delay,
-        Envelope,
-        Distortion,
-        Octaver
+        Distortion
     };
 
     struct EffectUIBlock
     {
-        juce::Slider(*sliders)[3];  // puntatore ad array di 3 Slider
-        juce::Label(*labels)[3];   // puntatore ad array di 3 Label
+        juce::Slider* (sliders);  // puntatore ad array di 3 Slider
+        juce::Label* (labels);   // puntatore ad array di 3 Label
         juce::String* labelNames;
         int numParams;
 
-        EffectUIBlock(juce::Slider(*sliders)[3], juce::Label(*labels)[3], juce::String* names, int numParams)
+        EffectUIBlock(juce::Slider* (sliders), juce::Label* (labels), juce::String* names, int numParams)
             : sliders(sliders),
             labels(labels),
             labelNames(names),
@@ -63,12 +54,12 @@ private:
     };
 
     // - Reverb ----------------------------------------------------------------------------------------------------------
-    juce::Reverb reverbHandler[3];
+    juce::Reverb reverbHandler;
     juce::Label reverbMainLabel;
     
     // - Knobs -
-    juce::Slider reverbSliders[6][3];
-    juce::Label reverbLabels[6][3];
+    juce::Slider reverbSliders[6];
+    juce::Label reverbLabels[6];
 
     juce::String reverbLabelNames[6] = { "Room Size", "Damping", "Wet level", "Dry level", "Width", "Freeze Mode" };
 
@@ -78,8 +69,8 @@ private:
     juce::Label distortionMainLabel;
 
 
-    juce::Slider distortionSliders[2][3];
-    juce::Label distortionLabels[2][3];
+    juce::Slider distortionSliders[2];
+    juce::Label distortionLabels[2];
 
     juce::String distortionLabelNames[2] = { "Drive", "Mix" };
 
@@ -88,8 +79,8 @@ private:
 	// - Delay ----------------------------------------------------------------------------------------------------------
 	juce::Label delayMainLabel;
 
-	juce::Slider delaySliders[3][3];
-	juce::Label delayLabels[3][3];
+	juce::Slider delaySliders[3];
+	juce::Label delayLabels[3];
 
 	juce::String delayLabelNames[3] = { "Wet Level", "Dry Level", "Delay seconds"};
 

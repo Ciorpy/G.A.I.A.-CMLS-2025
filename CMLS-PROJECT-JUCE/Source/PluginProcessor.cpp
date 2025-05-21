@@ -15,9 +15,9 @@ CMLSPROJECTJUCEAudioProcessor::CMLSPROJECTJUCEAudioProcessor()
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
                       #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::discreteChannels(6), true)
+                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
                       #endif
-                       .withOutput ("Output", juce::AudioChannelSet::discreteChannels(6), true)
+                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
                        )
 #endif
@@ -116,18 +116,26 @@ void CMLSPROJECTJUCEAudioProcessor::releaseResources()
 #ifndef JucePlugin_PreferredChannelConfigurations
 bool CMLSPROJECTJUCEAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
-    const auto& inputLayout = layouts.getMainInputChannelSet();
-    const auto& outputLayout = layouts.getMainOutputChannelSet();
-
-    // Accetta solo 6 canali discreti in input
-    if (inputLayout != juce::AudioChannelSet::discreteChannels(6))
+#if JucePlugin_IsMidiEffect
+    juce::ignoreUnused(layouts);
+    return true;
+#else
+    // This is the place where you check if the layout is supported.
+    // In this template code we only support mono or stereo.
+    // Some plugin hosts, such as certain GarageBand versions, will only
+    // load plugins that support stereo bus layouts.
+    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
+        && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
 
-    // Output deve essere stereo
-    if (outputLayout != juce::AudioChannelSet::discreteChannels(6))
+    // This checks if the input layout matches the output layout
+#if ! JucePlugin_IsSynth
+    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
         return false;
+#endif
 
     return true;
+#endif
 }
 #endif
 
@@ -142,55 +150,36 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
         buffer.clear(i, 0, numSamples);
 
     // Riferimenti a write e read pointer del buffer
-    float* channelOutData[6]{};
-    const float* channelInData[6]{};
+    float* channelOutData[2]{};
+    const float* channelInData[2]{};
 
     for (int i = 0; i < totalNumInputChannels; i++) {
         channelOutData[i] = buffer.getWritePointer(i);
         channelInData[i] = buffer.getReadPointer(i);
     }
 
-    // Variabile che permette la corretta applicazione dei delay
-    int ds_now[3] = { getDelayDS(Chords), getDelayDS(Bass), getDelayDS(Notes) };
-
-    // 
     int leftIndex = 0, rightIndex = 1;
 
     for (int i = 0; i < numSamples; ++i)
     {
-        for (int j = 0; j < totalNumInputChannels / 2; j++) {
-            leftIndex = j * 2;
-            rightIndex = j * 2 + 1;
 
-            float left = channelInData[leftIndex][i];
-            float right = channelInData[rightIndex][i];
+        float left = channelInData[leftIndex][i];
+        float right = channelInData[rightIndex][i];
 
-            // Copia input
-            float processedLeft = left;
-            float processedRight = right;
+        // Copia input
+        float processedLeft = left;
+        float processedRight = right;
 
-            // Applica effetti
-            processDistortion(&processedLeft, &processedRight, j);
-            processDelay(&processedLeft, &processedRight, j);
+        // Applica effetti
+        processDistortion(&processedLeft, &processedRight);
+        processDelay(&processedLeft, &processedRight);
 
-            // Scrivi nel buffer di output
-            channelOutData[leftIndex][i] = processedLeft;
-            channelOutData[rightIndex][i] = processedRight;
-
-            dw[j] = (dw[j] + 1) % ds_now[j];
-            dr[j] = (dr[j] + 1) % ds_now[j];
-        }
+        // Scrivi nel buffer di output
+        channelOutData[leftIndex][i] = processedLeft;
+        channelOutData[rightIndex][i] = processedRight;
     }
 
-    for (int j = 0; j < totalNumInputChannels / 2; j++) {
-        leftIndex = j * 2;
-        rightIndex = j * 2 + 1;
-
-        dr[j] = (dw[j] - ds_now[j] + 100000) % 100000;
-
-        // A questo punto channelOutData[x] punta ancora al buffer originale
-        processReverb(channelOutData[leftIndex], channelOutData[rightIndex], numSamples, j);
-    }
+    processReverb(channelOutData[leftIndex], channelOutData[rightIndex], numSamples);
 }
 
 

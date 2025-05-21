@@ -109,66 +109,46 @@ void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> add
 }
 
 
-void CMLSPROJECTJUCEEffects::processDelay(float* left, float* right, int SuperCollComponent)
+void CMLSPROJECTJUCEEffects::processDelay(float* left, float* right)
 {
     int leftIndex = 0;
-    int rightIndex = 0;
-	switch (SuperCollComponent)
-	{
-	case 0:
-        leftIndex = 0;
-        rightIndex = 1;
-		break;
-	case 1:
-        leftIndex = 2;
-        rightIndex = 3;
-		break;
-	case 2:
-        leftIndex = 4;
-        rightIndex = 5;
-		break;
-	default:
-		break;
-	}
+    int rightIndex = 1;
 
-    float wetLevel = delayBlock.sliders[0][SuperCollComponent].getValue();
-    float dryLevel = delayBlock.sliders[1][SuperCollComponent].getValue();
+    float wetLevel = delayBlock.sliders[0].getValue();
+    float dryLevel = delayBlock.sliders[1].getValue();
 
-    dbuf.setSample(leftIndex, dw[SuperCollComponent], *left);
-    dbuf.setSample(rightIndex, dw[SuperCollComponent], *right);
+    //dbuf.setSample(leftIndex, dw, *left);
+    //dbuf.setSample(rightIndex, dw, *right);
 
-    *left = dryLevel * *left + wetLevel * dbuf.getSample(leftIndex, dr[SuperCollComponent]);
-    *right = dryLevel * *right + wetLevel * dbuf.getSample(rightIndex, dr[SuperCollComponent]);
+    //*left = dryLevel * *left + wetLevel * dbuf.getSample(leftIndex, dr);
+    //*right = dryLevel * *right + wetLevel * dbuf.getSample(rightIndex, dr);
     return;
 }
 
 
-void CMLSPROJECTJUCEEffects::processReverb(float* left, float* right, int numSamples, int SuperCollComponent)
+void CMLSPROJECTJUCEEffects::processReverb(float* left, float* right, int numSamples)
 {
-    float roomSize = reverbBlock.sliders[0][SuperCollComponent].getValue();
-    float damping = reverbBlock.sliders[1][SuperCollComponent].getValue();
-    float wetLevel = reverbBlock.sliders[2][SuperCollComponent].getValue();
-    float dryLevel = reverbBlock.sliders[3][SuperCollComponent].getValue();
-    float revWidth = reverbBlock.sliders[4][SuperCollComponent].getValue();
-    float freezeMode = reverbBlock.sliders[5][SuperCollComponent].getValue();
+    float roomSize = reverbBlock.sliders[0].getValue();
+    float damping = reverbBlock.sliders[1].getValue();
+    float wetLevel = reverbBlock.sliders[2].getValue();
+    float dryLevel = reverbBlock.sliders[3].getValue();
+    float revWidth = reverbBlock.sliders[4].getValue();
+    float freezeMode = reverbBlock.sliders[5].getValue();
 
     juce::Reverb::Parameters reverbParams = { roomSize, damping, wetLevel, dryLevel, revWidth, freezeMode};
 
-
-    reverbHandler[SuperCollComponent].setParameters(reverbParams);
-    reverbHandler[SuperCollComponent].processStereo(left, right, numSamples);
+    reverbHandler.setParameters(reverbParams);
+    reverbHandler.processStereo(left, right, numSamples);
     return;
 }
 
-void CMLSPROJECTJUCEEffects::processDistortion(float* sampleL, float* sampleR, int SuperCollComponent)
+void CMLSPROJECTJUCEEffects::processDistortion(float* sampleL, float* sampleR)
 {
-    float drive = distortionBlock.sliders[0][SuperCollComponent].getValue();
-    float mix = distortionBlock.sliders[1][SuperCollComponent].getValue();
+    float drive = distortionBlock.sliders[0].getValue();
+    float mix = distortionBlock.sliders[1].getValue();
 
     *sampleL = (1 - mix) * *sampleL + mix * juce::jlimit(-0.1f, 0.1f, *sampleL * drive);
     *sampleR = (1 - mix) * *sampleR + mix * juce::jlimit(-0.1f, 0.1f, *sampleR * drive);
-
-
     return;
 }
 
@@ -194,21 +174,6 @@ void CMLSPROJECTJUCEEffects::setMainLabel(std::function<void(juce::Component&)> 
     case EffectID::Reverb:
         mainLabel = &reverbMainLabel;
         mainLabelTitle = "Reverb";
-        break;
-
-    case EffectID::Octaver:
-        mainLabel = NULL;
-        mainLabelTitle = "Octaver";
-        break;
-
-    case EffectID::WahWah:
-        mainLabel = NULL;
-        mainLabelTitle = "Wah-wah";
-        break;
-
-    case EffectID::Envelope:
-        mainLabel = NULL;
-        mainLabelTitle = "Envelope";
         break;
 
     default:
@@ -242,15 +207,6 @@ void CMLSPROJECTJUCEEffects::retrieveData(int effectID, EffectUIBlock*& block)
 
     case EffectID::Reverb:
         block = &reverbBlock;
-        break;
-
-    case EffectID::Octaver:
-        break;
-
-    case EffectID::WahWah:
-        break;
-
-    case EffectID::Envelope:
         break;
 
     default:
