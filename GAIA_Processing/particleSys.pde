@@ -30,14 +30,14 @@ class ParticleSystem {
     float small_force = 0.05;
     PVector random_force = new PVector(0, 0);
 
-    // Generazione di nuove particelle (controllata dal bornRate)
+    // New particles generation (controlled by bornRate)
     particleAccumulator += map(bornRate, 0, 1, 0.02, 10.0);
     while (particleAccumulator >= 0.5) {
       this.addParticle();
       particleAccumulator -= 0.5;
     }
 
-    // Update e disegno delle particelle
+    // Update and particles drawing
     for (int i = particles.size() - 1; i >= 0; i--) {
       p = particles.get(i);
       random_force.x = forceScale * random(-small_force, small_force);

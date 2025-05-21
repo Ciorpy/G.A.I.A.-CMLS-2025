@@ -3,9 +3,9 @@ import netP5.*;
 
 OscP5 oscP5;
 
-float temp = 0.5;   // Colore
+float temp = 0.5;   // Colour
 float hum = 0.5;    // Lifespan
-float light = 0.5;  // Accelerazione
+float light = 0.5;  // Acceleration
 
 ParticleSystem ps;
 int Nparticles = 500;
@@ -28,9 +28,9 @@ void draw(){
   ps.draw();
 }
 
-// Ricezione OSC da SuperCollider
+// OSC reception from Arduino
 void oscEvent(OscMessage msg) {
-  println("MSG ARRIVATO:");
+  println("MSG ARRIVED:");
   println("address: " + msg.addrPattern());
   println("typetag: " + msg.typetag());
 
@@ -46,9 +46,9 @@ void oscEvent(OscMessage msg) {
     if (msg.checkAddrPattern("/sensors/rldr") && msg.checkTypetag("i")) {
       light = msg.get(0).intValue() / 4095.0;
     }
-    println("Valori aggiornati:");
+    println("New values:");
     println("temp: " + temp + ", hum: " + hum + ", light: " + light);
   } catch(Exception e) {
-    println("Errore nel parsing OSC: " + e.getMessage());
+    println("Errore in OSC parsing: " + e.getMessage());
   }
 }
