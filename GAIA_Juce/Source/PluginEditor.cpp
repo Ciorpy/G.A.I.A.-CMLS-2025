@@ -30,19 +30,10 @@ void GAIAJuceAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-    
-    //ROW 1
-    g.setColour(juce::Colours::red);
-    g.fillRect(0, 0, 1800, 300);
 
-    //ROW 2
-    g.setColour(juce::Colours::green);
-    g.fillRect(600, 0, 1800, 300);
-
-    //ROW 3
-    g.setColour(juce::Colours::blue);
-    g.fillRect(1200, 0, 1800, 300);
-
+	g.setColour(juce::Colours::grey); 
+    g.drawVerticalLine(600, 0, getHeight());
+	g.drawVerticalLine(1200, 0, getHeight());
 
     g.setColour (juce::Colours::white);
     g.setFont (juce::FontOptions (40.0f));
