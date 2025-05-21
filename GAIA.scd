@@ -16,9 +16,12 @@ Without ARDUINO - With Simulator:
 */
 
 // === SETUP E CONTROLLI ===
-s.reboot; // Restart Audio Server
-s.options.outDevice = "Output (VB-Audio Point)"; // Virtual Audio Output
-s.options.numOutputBusChannels = 6; // 6 outputs
+(
+s.options.outDevice = "ASIO : ReaRoute ASIO";  // Driver In/Out
+s.options.numOutputBusChannels = 6; // Number of channels
+s.options.sampleRate = 44100;
+s.reboot;
+)
 
 NetAddr.langPort; // Verify OSC port
 OSCFunc.trace(true);  // Activate printing of all received OSC messages
@@ -174,8 +177,7 @@ SynthDef(\GAIA, { | temp = 0.5,	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0
 
 	var noteSig = noteEnv * SinOsc.ar(noteFreq, 0, 0.3);
 
-	Out.ar(out, [bassSig + chordSig + noteSig, bassSig + chordSig + noteSig]);
-	//Out.ar(out, [chordSig, chordSig, bassSig, bassSig, noteSig, noteSig]);
+	Out.ar(out, [chordSig, chordSig, bassSig, bassSig, noteSig, noteSig]);
 }).add;
 )
 
