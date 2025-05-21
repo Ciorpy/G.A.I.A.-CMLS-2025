@@ -17,7 +17,8 @@ Senza Arduino e quindi con simulatore:
 
 // === SETUP E CONTROLLI ===
 s.reboot; // Riavvia il server audio
-s.options.outDevice = "CABLE Input (VB-Audio Virtual Cable)"; // Uscita audio virtuale
+s.options.outDevice = "Output (VB-Audio Point)"; // Uscita audio virtuale
+s.options.numOutputBusChannels = 6; // 6 uscite
 
 NetAddr.langPort; // Verifica la porta del linguaggio per OSC
 OSCFunc.trace(true);  // Attiva la stampa di tutti i messaggi OSC ricevuti
@@ -40,6 +41,8 @@ OSCFunc.trace(false); // Disattivala quando non serve
 // === Ricezione OSC e aggiornamento synth ===
 OSCdef(\temp, { |msg|
 	~tempRaw = msg[1];
+	~temp = ~tempRaw.linlin(2500, 3000, 0.0, 1.0).clip(0.0, 1.0);
+	~synth.set(\temp, ~temp);
 	~tonalCenter = (~tempRaw.linlin(2500, 3000, 0, 11)).floor.clip(0, 11);
 	~synth.set(\tonalCenter, ~tonalCenter);
 }, "/sensors/temp");
@@ -109,7 +112,7 @@ OSCdef(\noteVal, { |msg|
 
 // === SYNTH ===
 (
-SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerBar = 0, durBar = 10, triggerNote = 0, noteVal = 0, durNote = 0.5, out = 0 |
+SynthDef(\GAIA, { | temp = 0.5,	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerBar = 0, durBar = 10, triggerNote = 0, noteVal = 0, durNote = 0.5, out = 0 |
 
 	// === Parametri generali ===
 	var rowCount = 9;
@@ -129,7 +132,7 @@ SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerB
 	var barTrig = Trig1.kr(triggerBar, 0.001);
 	var row = Demand.kr(barTrig, 0, Dseq((0..(rowCount - 1)), inf));
 
-	// === BASSO ===
+	// === Bass ===
 	var bassMidi = 24 + tonalCenter + Select.kr(row, basses.collect(_.first));
 	var bassFreq = bassMidi.midicps;
 	var step = 12;
@@ -138,38 +141,28 @@ SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerB
 	var modFreq = light.linlin(0, 1, 12, 0);
 	var lfo = SinOsc.kr(modFreq).range(0.7, 1.3);
 
-	var bassSig = (
-		LFPar.ar(freq1, 0.25, 0.5 * lfo) + LFPar.ar(freq2, 0.5, 0.3 * lfo)
-	);
-
-	// === ACCORDI ===
+	// === Chord ===
 	var chord = Select.kr(row, chords).collect { |n| 48 + tonalCenter + n };
 	var chordFreqs = chord.collect(_.midicps);
 	var numHarm = light.linlin(0, 1, 1, 12).round;
 
-	var chordSig = Mix.fill(chordFreqs.size, { |i|
-		Blip.ar(chordFreqs[i], numHarm, 0.2)
-	});
-
-	// === BASSO + ACCORDI CON MODULAZIONE===
-	var lfoFreq = hum.linlin(0, 1, 0.2, 0.05); // 5–20 sec
+	// === Modulazione===
+	var lfoFreq = temp.linlin(0, 1, 0.2, 5); // 5–0.2 sec
 	var ampLfo = SinOsc.kr(lfoFreq).range(0.3, 0.7);
-	var bassSigDry = bassSig * ampLfo;
-	var chordSigDry = chordSig * ampLfo;
-
-	// === Riverbero controllato da umidità ===
-	var dryWet = hum.linlin(0.0, 1.0, 0.1, 0.6);
-	var room = hum.linlin(0.0, 1.0, 0.5, 1.0);
+	var durSound = hum.linlin(0, 1, (durBar / 2), 0.5);
 
 	// === Inviluppo per accordi ===
-	var envHarmony = EnvGen.kr(Env.linen(1.8, (durBar - 3.6), 1.8), gate: barTrig);
+	var envHarmony = EnvGen.kr(Env.linen(
+		durSound, (durBar - (2 * durSound)), durSound
+	), gate: barTrig);
 
-	var bassSigWet = envHarmony * FreeVerb.ar(
-		bassSigDry, mix: dryWet, room: room, damp: 0.6
+	// === Segnali ===
+	var bassSig = envHarmony * ampLfo * (
+		LFPar.ar(freq1, 0.25, 0.5 * lfo) + LFPar.ar(freq2, 0.5, 0.3 * lfo)
 	);
-	var chordSigWet = envHarmony * FreeVerb.ar(
-		chordSigDry, mix: dryWet, room: room, damp: 0.6
-	);
+	var chordSig = envHarmony * ampLfo * Mix.fill(chordFreqs.size, { |i|
+		Blip.ar(chordFreqs[i], numHarm, 0.2)
+	});
 
 	// === Note singole ===
 	var noteFreq = (72 + tonalCenter + noteVal).midicps;
@@ -181,8 +174,8 @@ SynthDef(\GAIA, { |	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerB
 
 	var noteSig = noteEnv * SinOsc.ar(noteFreq, 0, 0.3);
 
-	//Out.ar(out, [bassSigWet + chordSigWet + noteSig, bassSigWet + chordSigWet + noteSig]);
-	Out.ar(out, [chordSigWet, chordSigWet, bassSigWet, bassSigWet, noteSig, noteSig]);
+	Out.ar(out, [bassSig + chordSig + noteSig, bassSig + chordSig + noteSig]);
+	//Out.ar(out, [chordSig, chordSig, bassSig, bassSig, noteSig, noteSig]);
 }).add;
 )
 

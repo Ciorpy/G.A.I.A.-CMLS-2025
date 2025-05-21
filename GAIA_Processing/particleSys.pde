@@ -20,7 +20,7 @@ class ParticleSystem {
   }
 
   void followEnv(float colour, float lifespan, float speed) {
-    particleHue = (int)(colour * 255);                 // temp → colore
+    particleHue = (int)((1.0 - colour) * 255);                 // temp → colore
     bornRate = constrain(lifespan, 0, 1);              // umidità → rate
     forceScale = pow(1000, speed) - 1;                 // temp → forza
   }
