@@ -34,7 +34,7 @@ The script includes multiple sections:
     - Arduino Mode: Receives real sensor data and triggers from an Arduino via OSC.
     - Simulator Mode: Generates random sensor values and triggers for testing without hardware, and sends them to Processing and JUCE over OSC.
 
-    ***Focus on the GAIA Synth***:
+    **Focus on the GAIA Synth**:
     The GAIA synth is designed as a dynamic, ambient sound generator that reacts expressively to environmental input. It blends three key sound layers—bass, chords, and melodic notes—each modulated by sensor data received via OSC.
     Structure and Features:
     - Bass Layer:
@@ -61,14 +61,14 @@ The script includes multiple sections:
 4. **GAIA_Processing**
 This Processing sketch creates a dynamic particle system that reacts in real-time to environmental sensor data received via OSC messages from Arduino. The data includes temperature, humidity, and light levels, which are mapped to control the color, lifespan, and acceleration of particles on screen. By continuously receiving and normalizing the sensor values, the sketch adjusts the particle behavior and appearance, producing an evolving and interactive visual representation of the surrounding environment.
 
-- GAIA_processing.pde:
-This part of the code sets up the OSC receiver to listen for messages on a specific UDP port. It translates the raw integer sensor values into normalized floats between zero and one, suitable for controlling visual parameters. This segment also initializes the particle system with a set number of particles and continuously updates the system each frame based on the latest sensor readings. Additionally, it includes debug prints to track incoming OSC messages and the mapped values, helping verify that data flows correctly from the sensors into the visual system.
+    - GAIA_processing.pde:
+    This part of the code sets up the OSC receiver to listen for messages on a specific UDP port. It translates the raw integer sensor values into normalized floats between zero and one, suitable for controlling visual parameters. This segment also initializes the particle system with a set number of particles and continuously updates the system each frame based on the latest sensor readings. Additionally, it includes debug prints to track incoming OSC messages and the mapped values, helping verify that data flows correctly from the sensors into the visual system.
 
-- particle.pde:
-This part defines the Particle class, representing individual particles within the system. Each particle has properties like position, velocity, acceleration, radius, lifespan, and a hue value that determines its color. Particles respond to forces by adjusting their acceleration and velocity, allowing for natural movement behaviors. As time progresses, their lifespan gradually decreases until they “die” and get removed from the system. This class also handles rendering each particle with colors based on the hue, which is linked to the light sensor value, adding a direct visual correlation between environmental data and particle appearance.
+    - particle.pde:
+    This part defines the Particle class, representing individual particles within the system. Each particle has properties like position, velocity, acceleration, radius, lifespan, and a hue value that determines its color. Particles respond to forces by adjusting their acceleration and velocity, allowing for natural movement behaviors. As time progresses, their lifespan gradually decreases until they “die” and get removed from the system. This class also handles rendering each particle with colors based on the hue, which is linked to the light sensor value, adding a direct visual correlation between environmental data and particle appearance.
 
-- particleSys.pde:
-This section implements the ParticleSystem class, which manages a collection of Particle instances. This class controls how new particles are born, how they move, and how they are removed when expired. The birth rate is linked to humidity levels, meaning wetter conditions produce more particles. The acceleration forces applied to particles are scaled by temperature levels, influencing their speed and movement dynamics. The particle colors are also adjusted according to lightness. The system ensures a maximum number of particles to maintain performance and applies small random forces each frame to create organic, lively motion. The combination of these controls provides a rich and nuanced visual environment that mirrors the sensor inputs in an engaging and artistic way.
+    - particleSys.pde:
+    This section implements the ParticleSystem class, which manages a collection of Particle instances. This class controls how new particles are born, how they move, and how they are removed when expired. The birth rate is linked to humidity levels, meaning wetter conditions produce more particles. The acceleration forces applied to particles are scaled by temperature levels, influencing their speed and movement dynamics. The particle colors are also adjusted according to lightness. The system ensures a maximum number of particles to maintain performance and applies small random forces each frame to create organic, lively motion. The combination of these controls provides a rich and nuanced visual environment that mirrors the sensor inputs in an engaging and artistic way.
 
 5. **GAIA_3DPrint**: 
 This OpenSCAD script defines a custom 3D-printable enclosure for the G.A.I.A. circuit system. The design includes a main rectangular box with tilted cylindrical ports for the two sensors — photoresistor (LDR) and DHT temperature/humidity sensor. The enclosure is hollowed to accommodate a MKR board, and offers a detachable top cover and sensor mounting geometries for precise fitting. The layout is modular, cleanly separating the main body, sensor ports, internal cavity, and optional attachments (e.g., LDR port and box cover).
