@@ -12,7 +12,7 @@
 #include "PluginEffects.h"
 
 
-int CMLSPROJECTJUCEEffects::getDelayDS()
+int GAIAJuceEffects::getDelayDS()
 {
     int v = delayBlock.sliders[2].getValue();
     if (v <= 0)
@@ -20,14 +20,14 @@ int CMLSPROJECTJUCEEffects::getDelayDS()
     return v;
 }
 
-void CMLSPROJECTJUCEEffects::setupMixerUI(std::function<void(juce::Component&)> addFn)
+void GAIAJuceEffects::setupMixerUI(std::function<void(juce::Component&)> addFn)
 {
     setUpArea(addFn, Reverb, 0, 0);
     setUpArea(addFn, Distortion, 600, 0);
     setUpArea(addFn, Delay, 1200, 0);
 }
 
-void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> addFn, int effectID, int posX, int posY)
+void GAIAJuceEffects::setUpArea(std::function<void(juce::Component&)> addFn, int effectID, int posX, int posY)
 {
     EffectUIBlock* block;
     int margin = 0;
@@ -97,7 +97,7 @@ void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> add
 }
 
 
-void CMLSPROJECTJUCEEffects::processDelay(float* left, float* right, int dw, int dr)
+void GAIAJuceEffects::processDelay(float* left, float* right, int dw, int dr)
 {
     int leftIndex = 0;
     int rightIndex = 1;
@@ -111,7 +111,7 @@ void CMLSPROJECTJUCEEffects::processDelay(float* left, float* right, int dw, int
 }
 
 
-void CMLSPROJECTJUCEEffects::processReverb(float* left, float* right, int numSamples)
+void GAIAJuceEffects::processReverb(float* left, float* right, int numSamples)
 {
     float roomSize = reverbBlock.sliders[0].getValue();
     float damping = reverbBlock.sliders[1].getValue();
@@ -127,7 +127,7 @@ void CMLSPROJECTJUCEEffects::processReverb(float* left, float* right, int numSam
     return;
 }
 
-void CMLSPROJECTJUCEEffects::processDistortion(float* sampleL, float* sampleR)
+void GAIAJuceEffects::processDistortion(float* sampleL, float* sampleR)
 {
     float drive = distortionBlock.sliders[0].getValue();
     float mix = distortionBlock.sliders[1].getValue();
@@ -138,7 +138,7 @@ void CMLSPROJECTJUCEEffects::processDistortion(float* sampleL, float* sampleR)
 }
 
 
-void CMLSPROJECTJUCEEffects::setMainLabel(std::function<void(juce::Component&)> addFn, int effectID, int posX, int posY)
+void GAIAJuceEffects::setMainLabel(std::function<void(juce::Component&)> addFn, int effectID, int posX, int posY)
 {
     juce::String mainLabelTitle = "sampleText";
     juce::Label* mainLabel = NULL;
@@ -175,7 +175,7 @@ void CMLSPROJECTJUCEEffects::setMainLabel(std::function<void(juce::Component&)> 
     }
 }
 
-void CMLSPROJECTJUCEEffects::retrieveData(int effectID, EffectUIBlock*& block)
+void GAIAJuceEffects::retrieveData(int effectID, EffectUIBlock*& block)
 {
     block = NULL;
 
