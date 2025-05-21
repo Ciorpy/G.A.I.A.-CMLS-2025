@@ -1,4 +1,4 @@
-// Parametri principali
+// Principal parameters
 box_length = 85;
 box_width = 72;
 box_height = 27;
