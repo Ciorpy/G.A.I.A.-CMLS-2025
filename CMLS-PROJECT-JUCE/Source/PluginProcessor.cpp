@@ -99,12 +99,9 @@ void CMLSPROJECTJUCEAudioProcessor::prepareToPlay (double sampleRate, int sample
 
     dbuf.setSize(getTotalNumOutputChannels(), 100000);
     dbuf.clear();
-	for (int i = 0; i < 3; ++i)
-	{
-		dr[i] = 0;
-		dw[i] = 1;
-	}
-
+	
+	dr = 0;
+	dw = 1;
 }
 
 void CMLSPROJECTJUCEAudioProcessor::releaseResources()
@@ -150,21 +147,24 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
         buffer.clear(i, 0, numSamples);
 
     // Riferimenti a write e read pointer del buffer
-    float* channelOutData[2]{};
-    const float* channelInData[2]{};
-
-    for (int i = 0; i < totalNumInputChannels; i++) {
-        channelOutData[i] = buffer.getWritePointer(i);
-        channelInData[i] = buffer.getReadPointer(i);
-    }
+    const float* channelInDataL = buffer.getWritePointer(0);
+    const float* channelInDataR = buffer.getWritePointer(1);
+    float* channelOutDataL = buffer.getWritePointer(0);
+    float* channelOutDataR = buffer.getWritePointer(1);
+ 
+    int ds_now = getDelayDS();
+    int dw = getDW();
+    int dr = getDR();
 
     int leftIndex = 0, rightIndex = 1;
 
     for (int i = 0; i < numSamples; ++i)
     {
+        dbuf.setSample(0, dw, channelInDataL[i]);
+        dbuf.setSample(1, dw, channelInDataR[i]);
 
-        float left = channelInData[leftIndex][i];
-        float right = channelInData[rightIndex][i];
+        float left = channelInDataL[i];
+        float right = channelInDataR[i];
 
         // Copia input
         float processedLeft = left;
@@ -175,11 +175,14 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
         processDelay(&processedLeft, &processedRight);
 
         // Scrivi nel buffer di output
-        channelOutData[leftIndex][i] = processedLeft;
-        channelOutData[rightIndex][i] = processedRight;
+        channelOutDataL[i] = processedLeft;
+        channelOutDataR[i] = processedRight;
+
+        dw = (dw + 1) % ds_now;
+        dr = (dr + 1) % ds_now;
     }
 
-    processReverb(channelOutData[leftIndex], channelOutData[rightIndex], numSamples);
+    processReverb(channelOutDataL, channelOutDataR, numSamples);
 }
 
 

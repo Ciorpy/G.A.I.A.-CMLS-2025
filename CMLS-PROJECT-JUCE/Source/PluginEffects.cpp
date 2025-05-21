@@ -12,12 +12,11 @@
 #include "PluginEffects.h"
 
 
-int CMLSPROJECTJUCEEffects::getDelayDS(int SuperCollComponent)
+int CMLSPROJECTJUCEEffects::getDelayDS()
 {
-    int v = delayBlock.sliders[2][SuperCollComponent].getValue();
+    int v = delayBlock.sliders[2].getValue();
     if (v <= 0)
         v = 50000;
-    DBG("getDelayDS(" << SuperCollComponent << ") = " << v);
     return v;
 }
 
@@ -26,9 +25,6 @@ void CMLSPROJECTJUCEEffects::setupMixerUI(std::function<void(juce::Component&)> 
     setUpArea(addFn, Reverb, 0, 0);
     setUpArea(addFn, Distortion, 0, 300);
     setUpArea(addFn, Delay, 0, 600);
-    //setUpArea(addFn, Distortion, distortionBlock);
-    //setUpArea(addFn, Distortion, distortionBlock);
-    //setUpArea(addFn, Distortion, distortionBlock);
 }
 
 void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> addFn, int effectID, int posX, int posY)
@@ -63,53 +59,43 @@ void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> add
     int sliderWidth = 100;
     int sliderHeight = 100;
     int spacing = (600 - margin * 2 - block->numParams * sliderWidth) / (block->numParams-1);
-    int nextBlockSpacingX = 600;
-    bool isMiddleCol = false;
+    
+    for (int i = 0; i < block->numParams; ++i)
+    {
+        auto& slider = block->sliders[i];
+        auto& label = block->labels[i];
+        auto val = 0.5f;
+        float minVal = 0.0, maxVal = 1.0, step = 0.01;
 
-    for (int j = 0; j < 3; j++) {
-        isMiddleCol = j % 2 == 1;
+		if (effectID == Delay && i == block->numParams - 1)
+		{
+			minVal = 5000.0f;
+			maxVal = 50000.0f;
+			step = 100.0f;
+            val = 50000.0f;
+		}
 
-        if (isMiddleCol) {
-            setMainLabel(addFn, effectID, posX + j * nextBlockSpacingX, posY);
-        }
+        slider.setSliderStyle(juce::Slider::Rotary);
+        slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+        slider.setRange(minVal, maxVal, step);
+        slider.setValue(val, juce::dontSendNotification);
 
-        for (int i = 0; i < block->numParams; ++i)
-        {
-            auto& slider = block->sliders[i][j];
-            auto& label = block->labels[i][j];
-            auto val = 0.5f;
-            float minVal = 0.0, maxVal = 1.0, step = 0.01;
+        label.setText(block->labelNames[i], juce::dontSendNotification);
+        label.attachToComponent(&slider, false);
 
-			if (effectID == Delay && i == block->numParams - 1)
-			{
-				minVal = 5000.0f;
-				maxVal = 50000.0f;
-				step = 100.0f;
-                val = 50000.0f;
-			}
+        addFn(slider);
+        addFn(label);
 
-            slider.setSliderStyle(juce::Slider::Rotary);
-            slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-            slider.setRange(minVal, maxVal, step);
-            slider.setValue(val, juce::dontSendNotification);
-
-            label.setText(block->labelNames[i], juce::dontSendNotification);
-            label.attachToComponent(&slider, false);
-
-            addFn(slider);
-            addFn(label);
-
-            int x = posX + nextBlockSpacingX * j + margin + i * (sliderWidth + spacing);
-            int y = posY + sliderHeight;
-            slider.setBounds(x, y, sliderWidth, sliderHeight);
-            label.setBounds(x, y - 15, sliderWidth, 20);
-            label.setJustificationType(juce::Justification::centred);
-        }
+        int x = posX + margin + i * (sliderWidth + spacing);
+        int y = posY + sliderHeight;
+        slider.setBounds(x, y, sliderWidth, sliderHeight);
+        label.setBounds(x, y - 15, sliderWidth, 20);
+        label.setJustificationType(juce::Justification::centred);
     }
 }
 
 
-void CMLSPROJECTJUCEEffects::processDelay(float* left, float* right)
+void CMLSPROJECTJUCEEffects::processDelay(float* left, float* right, int dw, int dr)
 {
     int leftIndex = 0;
     int rightIndex = 1;
@@ -117,11 +103,8 @@ void CMLSPROJECTJUCEEffects::processDelay(float* left, float* right)
     float wetLevel = delayBlock.sliders[0].getValue();
     float dryLevel = delayBlock.sliders[1].getValue();
 
-    //dbuf.setSample(leftIndex, dw, *left);
-    //dbuf.setSample(rightIndex, dw, *right);
-
-    //*left = dryLevel * *left + wetLevel * dbuf.getSample(leftIndex, dr);
-    //*right = dryLevel * *right + wetLevel * dbuf.getSample(rightIndex, dr);
+    *left = dryLevel * *left + wetLevel * dbuf.getSample(leftIndex, dr);
+    *right = dryLevel * *right + wetLevel * dbuf.getSample(rightIndex, dr);
     return;
 }
 

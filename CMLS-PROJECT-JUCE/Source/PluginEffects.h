@@ -18,16 +18,16 @@ public:
     // Audio processing
     juce::AudioSampleBuffer dbuf;
     int bufferSize = 100000;
-    int dw[3]{};
-    int dr[3]{};
+    int dw;
+    int dr;
 
     void setupMixerUI(std::function<void(juce::Component&)> addFn);
 
-	void processDelay(float* left, float* right);
+	void processDelay(float* left, float* right, int dw, int dr);
     void processReverb(float* left, float* right, int numSamples);
     void processDistortion(float* sample, float* sampleR);
 
-    int getDelayDS(int SuperCollComponent);
+    int getDelayDS();
 private:
 
 
