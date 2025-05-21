@@ -1,44 +1,44 @@
 /*
-=== GUIDA ALL'UTILIZZO ===
+=== USER GUIDE ===
 
-Con Arduino avviare in quest'ordine:
-1. "SETUP E CONTROLLI" (solo ciò che è necessario),
-2. "VARIABILI E RICEZIONE OSC",
-3. "ROUTINE DI STAMPA",
+With Arduino, to start in this order:
+1. "SETUP AND CONTROLS" (only where necessary),
+2. "VARIABLES AND OSC RECEPTION",
+3. "PRINT ROUTINE",
 4. "SYNTH",
 5. "START WITH ARDUINO".
 
-Senza Arduino e quindi con simulatore:
-1. "SETUP E CONTROLLI" (solo ciò che è necessario),
+Without ARDUINO - With Simulator:
+1. "SETUP AND CONTROLS" (only where necessary),
 2. "SYNTH",
-3. "SIMULATORE ARDUINO",
-4. "START WITH SIMULATORE".
+3. "ARDUINO SIMULATOR",
+4. "START WITH SIMULATOR".
 */
 
 // === SETUP E CONTROLLI ===
-s.reboot; // Riavvia il server audio
-s.options.outDevice = "Output (VB-Audio Point)"; // Uscita audio virtuale
-s.options.numOutputBusChannels = 6; // 6 uscite
+s.reboot; // Restart Audio Server
+s.options.outDevice = "Output (VB-Audio Point)"; // Virtual Audio Output
+s.options.numOutputBusChannels = 6; // 6 outputs
 
-NetAddr.langPort; // Verifica la porta del linguaggio per OSC
-OSCFunc.trace(true);  // Attiva la stampa di tutti i messaggi OSC ricevuti
-OSCFunc.trace(false); // Disattivala quando non serve
+NetAddr.langPort; // Verify OSC port
+OSCFunc.trace(true);  // Activate printing of all received OSC messages
+OSCFunc.trace(false); // Disable if not necessary
 
 
-// === VARIABILI E RICEZIONE OSC ===
+// === VARIABLES AND OSC RECEPTION ===
 (
-// === Variabili globali ===
+// === Global variables ===
 ~tempRaw = 0; ~tonalCenter = 0;
 ~humRaw = 0; ~hum = 0.5;
 ~lightRaw = 0; ~light = 0.5;
 ~triggerBar = 0;
-~durBar = 10000; // durata della battuta, in millisecondi
+~durBar = 10000; // length [ms]
 ~triggerNote = 0;
 ~noteVal = 0;
-~durNote = 0.5;  // secondi
+~durNote = 0.5;  // seconds
 
 
-// === Ricezione OSC e aggiornamento synth ===
+// === OSC receive and synth update ===
 OSCdef(\temp, { |msg|
 	~tempRaw = msg[1];
 	~temp = ~tempRaw.linlin(2500, 3000, 0.0, 1.0).clip(0.0, 1.0);
@@ -86,7 +86,7 @@ OSCdef(\noteVal, { |msg|
 )
 
 
-// === ROUTINE DI STAMPA ===
+// === PRINT ROUTINE ===
 (
 ~reader = Routine({
 	loop {
@@ -114,10 +114,10 @@ OSCdef(\noteVal, { |msg|
 (
 SynthDef(\GAIA, { | temp = 0.5,	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerBar = 0, durBar = 10, triggerNote = 0, noteVal = 0, durNote = 0.5, out = 0 |
 
-	// === Parametri generali ===
+	// === General Parameters ===
 	var rowCount = 9;
 
-	// === Matrici armoniche ===
+	// === Armonic Matrices ===
 	var basses = [
 		[0], [2], [7], [5], [7], [9], [4], [0], [2]
 	];
@@ -146,17 +146,17 @@ SynthDef(\GAIA, { | temp = 0.5,	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0
 	var chordFreqs = chord.collect(_.midicps);
 	var numHarm = light.linlin(0, 1, 1, 12).round;
 
-	// === Modulazione===
+	// === Modulation ===
 	var lfoFreq = temp.linlin(0, 1, 0.2, 5); // 5–0.2 sec
 	var ampLfo = SinOsc.kr(lfoFreq).range(0.3, 0.7);
 	var durSound = hum.linlin(0, 1, (durBar / 2), 0.5);
 
-	// === Inviluppo per accordi ===
+	// === Chords Envelope ===
 	var envHarmony = EnvGen.kr(Env.linen(
 		durSound, (durBar - (2 * durSound)), durSound
 	), gate: barTrig);
 
-	// === Segnali ===
+	// === Signals ===
 	var bassSig = envHarmony * ampLfo * (
 		LFPar.ar(freq1, 0.25, 0.5 * lfo) + LFPar.ar(freq2, 0.5, 0.3 * lfo)
 	);
@@ -164,7 +164,7 @@ SynthDef(\GAIA, { | temp = 0.5,	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0
 		Blip.ar(chordFreqs[i], numHarm, 0.2)
 	});
 
-	// === Note singole ===
+	// === Notes ===
 	var noteFreq = (72 + tonalCenter + noteVal).midicps;
 
 	var noteEnv = EnvGen.kr(
@@ -181,19 +181,19 @@ SynthDef(\GAIA, { | temp = 0.5,	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0
 
 // === START WITH ARDUINO ===
 (
-~reader.play;  // Avvia la console lettura
-~synth = Synth(\GAIA);  // Avvia il synth
+~reader.play;  // Start the reader console
+~synth = Synth(\GAIA);  // Start th synth
 )
 
-// === SIMULATORE ARDUINO ===
+// === ARDUINO SIMULATOR ===
 (
 var now;
 
-// DESTINATARI DI SERVIZIO
+// SERVICE RECEIVERS
 ~pr = NetAddr("127.0.0.1", 57130); // Processing
 ~jc = NetAddr("127.0.0.1", 57140); // JUCE
 
-// === INIZIALIZZAZIONE ===
+// === INITIALIZATION ===
 ~tempRaw = 2500;
 ~humRaw = 5000;
 ~lightRaw = 2048;
@@ -208,7 +208,7 @@ var now;
 ~barStart = Main.elapsedTime;
 ~noteStart = Main.elapsedTime;
 
-// === LOOP DI SIMULAZIONE ===
+// === SIMULATION LOOP ===
 ~simulateArduino = Routine({
 	loop {
 		now = Main.elapsedTime;
@@ -232,12 +232,12 @@ var now;
 			~triggerNote = 0;
 		};
 
-		// === SENSORI SIMULATI ===
+		// === SIMULATED SENSORS ===
 		~tempRaw = rrand(1500, 3500);
 		~humRaw = rrand(1000, 9000);
 		~lightRaw = rrand(0, 4095);
 
-		// === AGGIORNA SINTETIZZATORE DIRETTAMENTE ===
+		// === SYNTH UPDATE ===
 		~synth.set(
 			\tonalCenter, ((~tempRaw.linlin(1500, 3500, 0, 11)).floor.clip(0, 11)),
 			\hum, (~humRaw.linlin(1000, 9000, 0.0, 1.0).clip(0, 1)),
@@ -249,7 +249,7 @@ var now;
 			\noteVal, ~noteVal
 		);
 
-		// === DEBUG STAMPA ===
+		// === DEBUG PRINT ===
 		("Temp: " ++ (~tempRaw / 100).round(0.01) ++ " °C"
 		 ++ " | Hum: " ++ (~humRaw / 100).round(0.01) ++ " %"
 		 ++ " | Light: " ++ ~lightRaw).postln;
@@ -264,12 +264,12 @@ var now;
 
 		"--------------------------".postln;
 
-		// === INVIO A PROCESSING ===
+		// === SEND TO PROCESSING ===
 		~pr.sendMsg("/sensors/temp", ~tempRaw);
 		~pr.sendMsg("/sensors/humi", ~humRaw);
 		~pr.sendMsg("/sensors/rldr", ~lightRaw);
 
-		// === INVIO A JUCE ===
+		// === SEND TO JUCE ===
 		~jc.sendMsg("/sensors/temp", ~tempRaw);
 		~jc.sendMsg("/sensors/humi", ~humRaw);
 		~jc.sendMsg("/sensors/rldr", ~lightRaw);
@@ -280,6 +280,6 @@ var now;
 )
 
 
-// === START WITH SIMULATORE ===
-~synth = Synth(\GAIA);  // Avvia il synth
+// === START WITH SIMULATOR ===
+~synth = Synth(\GAIA);  // Start the synth
 
