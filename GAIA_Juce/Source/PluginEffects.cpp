@@ -23,8 +23,8 @@ int GAIAJuceEffects::getDelayDS()
 void GAIAJuceEffects::setupMixerUI(std::function<void(juce::Component&)> addFn)
 {
     setUpArea(addFn, Reverb, 0, 0);
-    setUpArea(addFn, Distortion, 0, 300);
-    setUpArea(addFn, Delay, 0, 600);
+    setUpArea(addFn, Distortion, 0, 200);
+    setUpArea(addFn, Delay, 0, 400);
 }
 
 void GAIAJuceEffects::setUpArea(std::function<void(juce::Component&)> addFn, int effectID, int posX, int posY)
