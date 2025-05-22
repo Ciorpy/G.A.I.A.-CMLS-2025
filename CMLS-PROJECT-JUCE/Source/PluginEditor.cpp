@@ -17,7 +17,7 @@ CMLSPROJECTJUCEAudioProcessorEditor::CMLSPROJECTJUCEAudioProcessorEditor (CMLSPR
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     audioProcessor.setupMixerUI([this](juce::Component& comp) { addAndMakeVisible(comp); });
-    setSize (1800, 300);
+    setSize (600, 900);
 }
 
 CMLSPROJECTJUCEAudioProcessorEditor::~CMLSPROJECTJUCEAudioProcessorEditor()

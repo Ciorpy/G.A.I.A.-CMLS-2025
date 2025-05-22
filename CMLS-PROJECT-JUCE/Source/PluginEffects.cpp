@@ -23,8 +23,8 @@ int CMLSPROJECTJUCEEffects::getDelayDS()
 void CMLSPROJECTJUCEEffects::setupMixerUI(std::function<void(juce::Component&)> addFn)
 {
     setUpArea(addFn, Reverb, 0, 0);
-    setUpArea(addFn, Distortion, 600, 0);
-    setUpArea(addFn, Delay, 1200, 0);
+    setUpArea(addFn, Distortion, 0, 300);
+    setUpArea(addFn, Delay, 0, 600);
 }
 
 void CMLSPROJECTJUCEEffects::setUpArea(std::function<void(juce::Component&)> addFn, int effectID, int posX, int posY)
