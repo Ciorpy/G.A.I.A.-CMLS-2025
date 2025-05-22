@@ -10,12 +10,12 @@
 DHT dht(DHTPIN, DHTTYPE);
 WiFiUDP Udp;
 
-const char* ssidList[] = {"G52DT", "Appartamento II Piano"};
-const char* passList[] = {"GDThotspot", "benvenuti!"};
-const int numNetworks = 2;
+const char* ssidList[] = {"XXX"};
+const char* passList[] = {"XXXXXXXXX"};
+const int numNetworks = 1;
 
 IPAddress remoteIP(192, 168, 123, 50);
-unsigned int remotePort[] = {57120, 57130, 57140};
+unsigned int remotePort[] = {57120, 57130};
 
 int temp = 0;
 int humi = 0;
@@ -91,11 +91,6 @@ void loop() {
   sendOSC("/sensors/temp", temp, remotePort[1]);
   sendOSC("/sensors/humi", humi, remotePort[1]);
   sendOSC("/sensors/rldr", rldr, remotePort[1]);
-  
-  // Juce
-  sendOSC("/sensors/temp", temp, remotePort[2]);
-  sendOSC("/sensors/humi", humi, remotePort[2]);
-  sendOSC("/sensors/rldr", rldr, remotePort[2]);
   
   delay(200);
 }

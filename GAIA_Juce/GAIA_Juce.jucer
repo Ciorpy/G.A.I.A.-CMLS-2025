@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="RjIAic" name="CMLS-PROJECT-JUCE" projectType="audioplug"
-              useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
-  <MAINGROUP id="Qst0v0" name="CMLS-PROJECT-JUCE">
+<JUCERPROJECT id="RjIAic" name="GAIA_Juce" projectType="audioplug" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginFormats="buildAU,buildVST3"
+              pluginManufacturer="Just Friends" pluginName="GAIA_Juce" pluginDesc="GAIA_Juce">
+  <MAINGROUP id="Qst0v0" name="GAIA_Juce">
     <GROUP id="{07936A78-F914-0D55-70DB-31C122B7B4F7}" name="Source">
       <FILE id="Ed9iST" name="PluginEffects.cpp" compile="1" resource="0"
             file="Source/PluginEffects.cpp"/>
@@ -36,8 +37,8 @@
   <EXPORTFORMATS>
     <VS2022 targetFolder="Builds/VisualStudio2022">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="CMLS-PROJECT-JUCE"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="CMLS-PROJECT-JUCE"/>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="GAIA_Juce"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="GAIA_Juce"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../../../JUCE/modules"/>

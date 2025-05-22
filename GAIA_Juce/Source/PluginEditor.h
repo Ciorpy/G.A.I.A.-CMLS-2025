@@ -14,11 +14,11 @@
 //==============================================================================
 /**
 */
-class CMLSPROJECTJUCEAudioProcessorEditor  : public juce::AudioProcessorEditor
+class GAIAJuceAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
-    CMLSPROJECTJUCEAudioProcessorEditor (CMLSPROJECTJUCEAudioProcessor&);
-    ~CMLSPROJECTJUCEAudioProcessorEditor() override;
+    GAIAJuceAudioProcessorEditor (GAIAJuceAudioProcessor&);
+    ~GAIAJuceAudioProcessorEditor() override;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -27,7 +27,7 @@ public:
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    CMLSPROJECTJUCEAudioProcessor& audioProcessor;
+    GAIAJuceAudioProcessor& audioProcessor;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (CMLSPROJECTJUCEAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GAIAJuceAudioProcessorEditor)
 };

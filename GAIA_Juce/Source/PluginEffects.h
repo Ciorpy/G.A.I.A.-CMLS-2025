@@ -12,7 +12,7 @@
 
 #include <JuceHeader.h>
 
-class CMLSPROJECTJUCEEffects
+class GAIAJuceEffects
 {
 public:
     // Audio processing

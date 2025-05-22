@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-CMLSPROJECTJUCEAudioProcessor::CMLSPROJECTJUCEAudioProcessor()
+GAIAJuceAudioProcessor::GAIAJuceAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
@@ -24,17 +24,17 @@ CMLSPROJECTJUCEAudioProcessor::CMLSPROJECTJUCEAudioProcessor()
 {
 }
 
-CMLSPROJECTJUCEAudioProcessor::~CMLSPROJECTJUCEAudioProcessor()
+GAIAJuceAudioProcessor::~GAIAJuceAudioProcessor()
 {
 }
 
 //==============================================================================
-const juce::String CMLSPROJECTJUCEAudioProcessor::getName() const
+const juce::String GAIAJuceAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool CMLSPROJECTJUCEAudioProcessor::acceptsMidi() const
+bool GAIAJuceAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
     return true;
@@ -43,7 +43,7 @@ bool CMLSPROJECTJUCEAudioProcessor::acceptsMidi() const
    #endif
 }
 
-bool CMLSPROJECTJUCEAudioProcessor::producesMidi() const
+bool GAIAJuceAudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
     return true;
@@ -52,7 +52,7 @@ bool CMLSPROJECTJUCEAudioProcessor::producesMidi() const
    #endif
 }
 
-bool CMLSPROJECTJUCEAudioProcessor::isMidiEffect() const
+bool GAIAJuceAudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
     return true;
@@ -61,37 +61,37 @@ bool CMLSPROJECTJUCEAudioProcessor::isMidiEffect() const
    #endif
 }
 
-double CMLSPROJECTJUCEAudioProcessor::getTailLengthSeconds() const
+double GAIAJuceAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int CMLSPROJECTJUCEAudioProcessor::getNumPrograms()
+int GAIAJuceAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int CMLSPROJECTJUCEAudioProcessor::getCurrentProgram()
+int GAIAJuceAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void CMLSPROJECTJUCEAudioProcessor::setCurrentProgram (int index)
+void GAIAJuceAudioProcessor::setCurrentProgram (int index)
 {
 }
 
-const juce::String CMLSPROJECTJUCEAudioProcessor::getProgramName (int index)
+const juce::String GAIAJuceAudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
-void CMLSPROJECTJUCEAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void GAIAJuceAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-void CMLSPROJECTJUCEAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void GAIAJuceAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
@@ -104,14 +104,14 @@ void CMLSPROJECTJUCEAudioProcessor::prepareToPlay (double sampleRate, int sample
 	dw = 1;
 }
 
-void CMLSPROJECTJUCEAudioProcessor::releaseResources()
+void GAIAJuceAudioProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool CMLSPROJECTJUCEAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+bool GAIAJuceAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
 #if JucePlugin_IsMidiEffect
     juce::ignoreUnused(layouts);
@@ -136,7 +136,7 @@ bool CMLSPROJECTJUCEAudioProcessor::isBusesLayoutSupported(const BusesLayout& la
 }
 #endif
 
-void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
+void GAIAJuceAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
 {
     int numSamples = buffer.getNumSamples();
     auto totalNumInputChannels = getTotalNumInputChannels();
@@ -188,25 +188,25 @@ void CMLSPROJECTJUCEAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
 
 
 //==============================================================================
-bool CMLSPROJECTJUCEAudioProcessor::hasEditor() const
+bool GAIAJuceAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* CMLSPROJECTJUCEAudioProcessor::createEditor()
+juce::AudioProcessorEditor* GAIAJuceAudioProcessor::createEditor()
 {
-    return new CMLSPROJECTJUCEAudioProcessorEditor (*this);
+    return new GAIAJuceAudioProcessorEditor (*this);
 }
 
 //==============================================================================
-void CMLSPROJECTJUCEAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void GAIAJuceAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // You should use this method to store your parameters in the memory block.
     // You could do that either as raw data, or use the XML or ValueTree classes
     // as intermediaries to make it easy to save and load complex data.
 }
 
-void CMLSPROJECTJUCEAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void GAIAJuceAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
@@ -216,5 +216,5 @@ void CMLSPROJECTJUCEAudioProcessor::setStateInformation (const void* data, int s
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new CMLSPROJECTJUCEAudioProcessor();
+    return new GAIAJuceAudioProcessor();
 }
