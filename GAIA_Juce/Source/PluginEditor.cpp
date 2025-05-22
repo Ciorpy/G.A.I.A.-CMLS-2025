@@ -17,7 +17,7 @@ GAIAJuceAudioProcessorEditor::GAIAJuceAudioProcessorEditor (GAIAJuceAudioProcess
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
     audioProcessor.setupMixerUI([this](juce::Component& comp) { addAndMakeVisible(comp); });
-    setSize (600, 600);
+    setSize (600, 900);
 }
 
 GAIAJuceAudioProcessorEditor::~GAIAJuceAudioProcessorEditor()
@@ -32,8 +32,8 @@ void GAIAJuceAudioProcessorEditor::paint (juce::Graphics& g)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
 	g.setColour(juce::Colours::grey); 
-    g.drawHorizontalLine(200, 0, getWidth());
-    g.drawHorizontalLine(400, 0, getWidth());
+    g.drawHorizontalLine(300, 0, getWidth());
+    g.drawHorizontalLine(600, 0, getWidth());
 
     g.setColour (juce::Colours::white);
     g.setFont (juce::FontOptions (40.0f));
