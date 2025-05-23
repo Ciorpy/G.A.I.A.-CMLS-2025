@@ -2,7 +2,7 @@
 
 ## Overview
 
-**G.A.I.A.** (Generative Audio via Interaction with Ambient) is an ambient generative system that transforms real-time environmental conditions and user interaction into immersive audiovisual experiences. It captures ambient data—temperature, humidity, and light—using Arduino-based sensors and converts them into dynamic soundscapes and visuals. The system blends real-world inputs with algorithmic composition to produce evolving, meditative ambient music, visually enhanced by a responsive particle system.
+**G.A.I.A.** (Generative Audio via Interaction with Ambient) is an ambient generative system that transforms real-time environmental conditions and user interaction into immersive audiovisual experiences. It captures ambient data—temperature, humidity and light—using Arduino-based sensors and converts them into dynamic soundscapes and visuals. The system blends real-world inputs with algorithmic composition to produce evolving, meditative ambient music, visually enhanced by a responsive particle system.
 
 G.A.I.A. is composed of modular units:
 - **Arduino** collects environmental data and triggers rhythmic events.
@@ -41,7 +41,7 @@ G.A.I.A. is composed of modular units:
 
    #### - Execution Modes:
    - **Arduino Mode**: Receives live sensor data and musical events directly from the Arduino module.
-   - **Simulator Mode**: Generates random values internally and sends them to SuperCollider (and optionally to JUCE and Processing), enabling testing without hardware.
+   - **Simulator Mode**: Generates random values internally, enabling testing without hardware.
 
    #### - Sound Architecture (GAIA Synth):
    The GAIA synth is structured into three independent yet interrelated layers, all influenced by environmental parameters:
