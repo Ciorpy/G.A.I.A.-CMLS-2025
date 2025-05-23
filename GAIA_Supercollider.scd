@@ -119,6 +119,7 @@ SynthDef(\GAIA, { | temp = 0.5,	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0
 
 	// === General Parameters ===
 	var rowCount = 9;
+	var step = 12;
 
 	// === Armonic Matrices ===
 	var basses = [
@@ -136,11 +137,8 @@ SynthDef(\GAIA, { | temp = 0.5,	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0
 	var row = Demand.kr(barTrig, 0, Dseq((0..(rowCount - 1)), inf));
 
 	// === Bass ===
-	var bassMidi = 24 + tonalCenter + Select.kr(row, basses.collect(_.first));
-	var bassFreq = bassMidi.midicps;
-	var step = 12;
-	var freq1 = bassFreq;
-	var freq2 = (bassMidi + step).midicps;
+	var bass1 = (24 + tonalCenter + Select.kr(row, basses.collect(_.first))).midicps;
+	var bass2 = ((24 + tonalCenter + Select.kr(row, basses.collect(_.first))) + step).midicps;
 	var modFreq = light.linlin(0, 1, 12, 0);
 	var lfo = SinOsc.kr(modFreq).range(0.7, 1.3);
 
@@ -161,7 +159,7 @@ SynthDef(\GAIA, { | temp = 0.5,	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0
 
 	// === Signals ===
 	var bassSig = envHarmony * ampLfo * (
-		LFPar.ar(freq1, 0.25, 0.5 * lfo) + LFPar.ar(freq2, 0.5, 0.3 * lfo)
+		LFPar.ar(bass1, 0.25, 0.5 * lfo) + LFPar.ar(bass2, 0.5, 0.3 * lfo)
 	);
 	var chordSig = envHarmony * ampLfo * Mix.fill(chordFreqs.size, { |i|
 		Blip.ar(chordFreqs[i], numHarm, 0.2)
