@@ -19,7 +19,7 @@ Without ARDUINO - With Simulator:
 (
 s.options.outDevice = "ASIO : ReaRoute ASIO";  // Driver In/Out
 s.options.numOutputBusChannels = 6; // Number of channels
-s.options.sampleRate = 44100;
+s.options.sampleRate = 48000;
 s.reboot;
 )
 
@@ -115,67 +115,69 @@ OSCdef(\noteVal, { |msg|
 
 // === SYNTH ===
 (
-SynthDef(\GAIA, { | temp = 0.5,	tonalCenter = 0, hum = 0.5, light = 0.5, amp = 0.5, triggerBar = 0, durBar = 10, triggerNote = 0, noteVal = 0, durNote = 0.5, out = 0 |
+SynthDef(\GAIA, { | temp = 0.5, hum = 0.5, light = 0.5,	tonalCenter = 0, triggerBar = 0, durBar = 10, triggerNote = 0, durNote = 0.5, noteVal = 0 |
 
-	// === General Parameters ===
-	var rowCount = 9;
-	var step = 12;
+	// === Preliminary operation ===
+	var harmonyLFOFreq = temp.linlin(0, 1, 0.2, 5);
+	var durEnv = hum.linlin(0, 1, (durBar / 2), 0.5);
+	var bassLFOFreq = light.linlin(0, 1, 12, 0);
+	var numHarm = light.linlin(0, 1, 1, 12).round;
+
+	// === Modulation LFO ===
+	var bassLFO = SinOsc.kr(bassLFOFreq).range(0.7, 1.3);
+	var harmonyLFO = SinOsc.kr(harmonyLFOFreq).range(0.3, 0.7);
+
+	// === Triggering ===
+	var barTrig = Trig1.kr(triggerBar, 0.001);
+	var noteTrig = Trig1.kr(triggerNote, 0.001);
+	var row = Demand.kr(barTrig, 0, Dseq((0..8), inf));
+
+	// === Envs ===
+	var harmonyEnv = EnvGen.kr(
+		Env.linen(durEnv, (durBar - (2 * durEnv)), durEnv),
+		gate: barTrig
+
+	);
+	var noteEnv = EnvGen.kr(
+		Env.perc(0.01, durNote),
+		gate: noteTrig
+
+	);
 
 	// === Armonic Matrices ===
 	var basses = [
 		[0], [2], [7], [5], [7], [9], [4], [0], [2]
 	];
-
 	var chords = [
 		[0, 5, 12], [2, 9, 16], [0, 7, 14],
 		[5, 9, 14], [7, 11, 16], [9, 14, 21],
 		[4, 7, 12], [4, 11, 16], [0, 9, 14]
 	];
 
-	// === Triggering ===
-	var barTrig = Trig1.kr(triggerBar, 0.001);
-	var row = Demand.kr(barTrig, 0, Dseq((0..(rowCount - 1)), inf));
-
-	// === Bass ===
-	var bass1 = (24 + tonalCenter + Select.kr(row, basses.collect(_.first))).midicps;
-	var bass2 = ((24 + tonalCenter + Select.kr(row, basses.collect(_.first))) + step).midicps;
-	var modFreq = light.linlin(0, 1, 12, 0);
-	var lfo = SinOsc.kr(modFreq).range(0.7, 1.3);
-
-	// === Chord ===
+	// === Selection ===
+	var bass = 24 + tonalCenter + Select.kr(row, basses.collect(_.first));
 	var chord = Select.kr(row, chords).collect { |n| 48 + tonalCenter + n };
+	var note = 72 + tonalCenter + noteVal;
+
+	// === Midi to Freqs ===
+	var bassFreq1 = (bass).midicps;
+	var bassFreq2 = (bass + 12).midicps;
 	var chordFreqs = chord.collect(_.midicps);
-	var numHarm = light.linlin(0, 1, 1, 12).round;
+	var noteFreq = (note).midicps;
 
-	// === Modulation ===
-	var lfoFreq = temp.linlin(0, 1, 0.2, 5); // 5–0.2 sec
-	var ampLfo = SinOsc.kr(lfoFreq).range(0.3, 0.7);
-	var durSound = hum.linlin(0, 1, (durBar / 2), 0.5);
-
-	// === Chords Envelope ===
-	var envHarmony = EnvGen.kr(Env.linen(
-		durSound, (durBar - (2 * durSound)), durSound
-	), gate: barTrig);
+	// === Oscillators ===
+	var bassOSC1 = LFPar.ar(bassFreq1, 0.25, 0.5 * bassLFO);
+	var bassOSC2 = LFPar.ar(bassFreq2, 0.5, 0.3 * bassLFO);
+	var chordOSC = Mix.fill(chordFreqs.size, { |i| Blip.ar(chordFreqs[i], numHarm, 0.15)});
+	var noteOSC = SinOsc.ar(noteFreq, 0, 0.4);
 
 	// === Signals ===
-	var bassSig = envHarmony * ampLfo * (
-		LFPar.ar(bass1, 0.25, 0.5 * lfo) + LFPar.ar(bass2, 0.5, 0.3 * lfo)
-	);
-	var chordSig = envHarmony * ampLfo * Mix.fill(chordFreqs.size, { |i|
-		Blip.ar(chordFreqs[i], numHarm, 0.2)
-	});
+	var bassSig = harmonyEnv * harmonyLFO * (bassOSC1 + bassOSC2);
+	var chordSig = harmonyEnv * harmonyLFO * chordOSC;
+	var noteSig = noteEnv * noteOSC;
 
-	// === Notes ===
-	var noteFreq = (72 + tonalCenter + noteVal).midicps;
-
-	var noteEnv = EnvGen.kr(
-		Env.perc(0.01, durNote),
-		gate: Trig1.kr(triggerNote, 0.001)
-	);
-
-	var noteSig = noteEnv * SinOsc.ar(noteFreq, 0, 0.3);
-
-	Out.ar(out, [chordSig, chordSig, bassSig, bassSig, noteSig, noteSig]);
+	// === Output ===
+	Out.ar(0, [bassSig, bassSig, chordSig, chordSig, noteSig, noteSig]);
 }).add;
 )
 
@@ -191,7 +193,6 @@ var now;
 
 // SERVICE RECEIVERS
 ~pr = NetAddr("127.0.0.1", 57130); // Processing
-~jc = NetAddr("127.0.0.1", 57140); // JUCE
 
 // === INITIALIZATION ===
 ~tempRaw = 2500;
@@ -268,11 +269,6 @@ var now;
 		~pr.sendMsg("/sensors/temp", ~tempRaw);
 		~pr.sendMsg("/sensors/humi", ~humRaw);
 		~pr.sendMsg("/sensors/rldr", ~lightRaw);
-
-		// === SEND TO JUCE ===
-		~jc.sendMsg("/sensors/temp", ~tempRaw);
-		~jc.sendMsg("/sensors/humi", ~humRaw);
-		~jc.sendMsg("/sensors/rldr", ~lightRaw);
 
 		0.2.wait;
 	}
