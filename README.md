@@ -67,6 +67,22 @@ G.A.I.A. is composed of modular units:
 
    This modular and sensor-responsive design enables G.A.I.A. to translate real-world conditions into rich, immersive sonic textures that evolve continuously and organically.
 
+### GAIA_Reaper
+
+   This module provides a complete **Reaper** project that integrates the GAIA system's audio pipeline with the custom JUCE plugin. It acts as the host environment for final audio processing and recording.
+
+   The session is preconfigured with **three stereo tracks**, each loaded with a unique instance of the `GAIA_Juce.vst3` plugin. These tracks are functionally identical and allow parallel processing of the three sound layers produced by SuperCollider: **bass**, **chords**, and **melody**.
+
+   #### - Configuration Details:
+   - Each track is set to **stereo input and output**, with JUCE plugins **active and unbypassed**.
+   - The plugin instances are spatially arranged in the workspace using **floating windows**, enabling real-time visual monitoring and manipulation.
+   - The DAW project is configured for **recording and playback**, making it suitable both for performance and evaluation.
+
+   #### - Audio Routing:
+   The input signals are routed into Reaper via **ReaRoute**, which connects SuperCollider’s six-channel output directly to Reaper's mixer. Each stereo pair from SuperCollider (bass L/R, chords L/R, melody L/R) is routed to one of the three JUCE plugin tracks for individual processing.
+
+   This setup enables full control over the spatial and spectral treatment of each sound layer, allowing the user to shape and refine the generative output using the dedicated distortion, delay, and reverb units in each JUCE plugin instance.
+
 ### GAIA_Juce 
 
    This module provides a custom **JUCE-based audio plugin** that processes stereo audio using three fundamental effects: **distortion**, **delay**, and **reverb**. It is designed to work in synergy with the audio output of the GAIA synth from SuperCollider and is hosted in Reaper for final mixing and processing.
@@ -97,22 +113,6 @@ G.A.I.A. is composed of modular units:
    - The visual design includes distinct horizontal sections for each effect, with custom drawing via the `paint()` method to create a clean layout.
 
    This JUCE module acts as a high-level audio effects unit, giving users real-time control over the final spatial and spectral shape of GAIA’s sound output.
-
-### GAIA_Reaper
-
-   This module provides a complete **Reaper** project that integrates the GAIA system's audio pipeline with the custom JUCE plugin. It acts as the host environment for final audio processing and recording.
-
-   The session is preconfigured with **three stereo tracks**, each loaded with a unique instance of the `GAIA_Juce.vst3` plugin. These tracks are functionally identical and allow parallel processing of the three sound layers produced by SuperCollider: **bass**, **chords**, and **melody**.
-
-   #### - Configuration Details:
-   - Each track is set to **stereo input and output**, with JUCE plugins **active and unbypassed**.
-   - The plugin instances are spatially arranged in the workspace using **floating windows**, enabling real-time visual monitoring and manipulation.
-   - The DAW project is configured for **recording and playback**, making it suitable both for performance and evaluation.
-
-   #### - Audio Routing:
-   The input signals are routed into Reaper via **ReaRoute**, which connects SuperCollider’s six-channel output directly to Reaper's mixer. Each stereo pair from SuperCollider (bass L/R, chords L/R, melody L/R) is routed to one of the three JUCE plugin tracks for individual processing.
-
-   This setup enables full control over the spatial and spectral treatment of each sound layer, allowing the user to shape and refine the generative output using the dedicated distortion, delay, and reverb units in each JUCE plugin instance.
 
 ### GAIA_Processing
 
