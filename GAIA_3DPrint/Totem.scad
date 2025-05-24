@@ -12,11 +12,8 @@ module cylinder_photo() {
     difference(){
         cylinder(h=tube_length, r=7, center=false, $fn=100); 
         
-        translate([0, 0, tube_length-5*wall_thickness])
+        translate([0, 0, tube_length-3*wall_thickness])
         cylinder(h=6*wall_thickness, r=5.5, center=false, $fn=100);
-        
-        translate([-10/2, -15/2, tube_length-2*wall_thickness])
-        cube([10, 15, wall_thickness]);
     }
 }
 
@@ -98,31 +95,15 @@ module totem () {
 }
         
 totem();
-/*
-translate([wall_thickness, wall_thickness+5, wall_thickness])
-cube([76, 63, 20]);
-*/
 
-module LDR_port () {
-    union() {        
-        cube([15, 10, wall_thickness]);
-        
-        translate([14, 0, -wall_thickness])
-        cube([wall_thickness, 10, 3*wall_thickness]);
-    }
-}
 
 module cover_box () {
     union() {        
-        cube([box_length+2, box_width-2*wall_thickness, wall_thickness]);
+        cube([box_length+2, box_width-2*wall_thickness-0.2, wall_thickness-0.2]);
         
-        translate([box_length+1, 0, -wall_thickness])
-        cube([wall_thickness, box_width-2*wall_thickness, 3*wall_thickness]);
+        translate([box_length+1, 0, 0])
+        cube([wall_thickness, box_width-2*wall_thickness-0.2, 3*wall_thickness]);
     }
 }
 
-translate([100, 0, wall_thickness])
-LDR_port();
-
-translate([100, 15, wall_thickness])
-cover_box();
+//cover_box();
