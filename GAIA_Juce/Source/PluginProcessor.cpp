@@ -96,10 +96,11 @@ void GAIAJuceAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
 
-
+    // Buffer setup
     dbuf.setSize(getTotalNumOutputChannels(), 100000);
     dbuf.clear();
 	
+    // Delay read and write initialization
 	dr = 0;
 	dw = 1;
 }
@@ -142,46 +143,53 @@ void GAIAJuceAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // Pulizia buffer
+    // Clear any output channels that don't have input data
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear(i, 0, numSamples);
 
-    // Riferimenti a write e read pointer del buffer
+    // Get pointers to input/output data for left and right channels
     const float* channelInDataL = buffer.getWritePointer(0);
     const float* channelInDataR = buffer.getWritePointer(1);
     float* channelOutDataL = buffer.getWritePointer(0);
     float* channelOutDataR = buffer.getWritePointer(1);
- 
+
+    // Get current delay buffer size
     int ds_now = getDelayDS();
 
+    // Channel indices for delay buffer
     int leftIndex = 0, rightIndex = 1;
 
     for (int i = 0; i < numSamples; ++i)
     {
-        dbuf.setSample(0, dw, channelInDataL[i]);
-        dbuf.setSample(1, dw, channelInDataR[i]);
+        // Store current input samples into delay buffer
+        dbuf.setSample(leftIndex, dw, channelInDataL[i]);
+        dbuf.setSample(rightIndex, dw, channelInDataR[i]);
 
         float left = channelInDataL[i];
         float right = channelInDataR[i];
 
-        // Copia input
         float processedLeft = left;
         float processedRight = right;
 
-        // Applica effetti
+        // Apply distortion effect
         processDistortion(&processedLeft, &processedRight);
+
+        // Apply delay effect
         processDelay(&processedLeft, &processedRight, dw, dr);
 
-        // Scrivi nel buffer di output
+        // Store processed samples in output buffer
         channelOutDataL[i] = processedLeft;
         channelOutDataR[i] = processedRight;
 
+        // Increment and wrap delay write/read positions
         dw = (dw + 1) % ds_now;
         dr = (dr + 1) % ds_now;
     }
 
+    // Apply reverb effect to the processed output
     processReverb(channelOutDataL, channelOutDataR, numSamples);
 }
+
 
 
 

@@ -15,6 +15,7 @@
 /**
 */
 
+// Inherits both AudioProcessor and GAIAJuceEffects, which hosts all effects and variables
 class GAIAJuceAudioProcessor  : public juce::AudioProcessor, public GAIAJuceEffects
 {
 public:

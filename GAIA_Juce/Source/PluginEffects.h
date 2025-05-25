@@ -30,6 +30,7 @@ public:
     int getDelayDS();
 private:
 
+	// Enumeration for effect IDs
 
     enum EffectID {
         Reverb,
@@ -37,10 +38,11 @@ private:
         Distortion
     };
 
+	// Struct to hold UI components for each effect block
     struct EffectUIBlock
     {
-        juce::Slider* (sliders);  // puntatore ad array di 3 Slider
-        juce::Label* (labels);   // puntatore ad array di 3 Label
+        juce::Slider* (sliders);
+        juce::Label* (labels);
         juce::String* labelNames;
         int numParams;
 
