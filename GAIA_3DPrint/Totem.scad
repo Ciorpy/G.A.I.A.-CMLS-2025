@@ -109,7 +109,7 @@ module totem_without_closing () {
         translate([8.5, -1, box_height/2-2])
         cube([15, 4*wall_thickness, 13]);
         
-        translate([box_length-2*wall_thickness-1, box_width/2-10, box_height/2-4])
+        translate([box_length-2*wall_thickness-1, box_width/2-10, box_height/2-1])
         cube([10, 20, 14]);
     }
 }
